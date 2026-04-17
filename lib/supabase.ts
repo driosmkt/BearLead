@@ -1,12 +1,13 @@
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl  = import.meta.env.VITE_SUPABASE_URL  as string;
-const supabaseKey  = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-if (!supabaseUrl || !supabaseKey) {
-  throw new Error(
-    '[Bear Lead] Supabase não configurado. Adicione VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY no .env.local'
-  );
+if (!supabaseUrl || !supabaseAnonKey) {
+  console.warn('Supabase URL or Anon Key is missing. Check your .env file.');
 }
 
-export const supabase = createClient(supabaseUrl, supabaseKey);
+export const supabase = createClient(
+  supabaseUrl || 'https://placeholder.supabase.co',
+  supabaseAnonKey || 'placeholder'
+);

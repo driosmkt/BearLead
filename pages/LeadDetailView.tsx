@@ -1,393 +1,350 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { useLeadsContext } from '../context/LeadsContext';
+import { ViewState, LeadStatus, LeadHistory } from '../types';
 import { 
   ArrowLeft, 
+  Phone, 
+  Mail, 
+  MessageCircle, 
   Calendar, 
-  Clock, 
-  Bot, 
-  User, 
-  Baby, 
-  Phone,
-  MessageSquare,
-  Facebook,
-  Instagram,
-  Globe,
-  MapPin,
-  Flame,
-  Snowflake,
-  ThermometerSun,
-  Activity,
-  UserCheck,
-  PhoneCall,
-  Mail,
-  XCircle,
-  FileText,
+  MoreVertical,
   CheckCircle2,
-  Settings
+  AlertCircle,
+  Clock,
+  Send,
+  Trash2,
+  FileText,
+  User,
+  Zap
 } from 'lucide-react';
-import { Lead } from '../types';
+import { motion, AnimatePresence } from 'motion/react';
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 
-interface LeadDetailViewProps {
-  lead: Lead;
-  onBack: () => void;
-}
+export const LeadDetailView: React.FC = () => {
+  const { leads, selectedLeadId, setCurrentView, updateLeadStatus, addNote } = useLeadsContext();
+  const [noteContent, setNoteContent] = useState('');
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
-export const LeadDetailView: React.FC<LeadDetailViewProps> = ({ lead, onBack }) => {
-  
-  const getSourceIcon = (source: string) => {
-    switch (source) {
-      case 'Facebook Ads': return <Facebook size={16} />;
-      case 'Instagram': return <Instagram size={16} />;
-      case 'Google Ads': 
-      case 'Google Meu Negócio': return <Globe size={16} />;
-      default: return <User size={16} />;
-    }
+  const lead = leads.find(l => l.id === selectedLeadId);
+
+  if (!lead) return null;
+
+  const handleSaveNote = () => {
+    if (!noteContent.trim()) return;
+    addNote(lead.id, noteContent);
+    setNoteContent('');
   };
 
-  const getSourceColor = (source: string) => {
-    switch (source) {
-      case 'Facebook Ads': return 'text-blue-600 bg-blue-50 dark:bg-blue-900/20';
-      case 'Instagram': return 'text-pink-600 bg-pink-50 dark:bg-pink-900/20';
-      case 'Google Ads': return 'text-green-600 bg-green-50 dark:bg-green-900/20';
-      default: return 'text-slate-600 bg-slate-50 dark:bg-slate-800';
-    }
+  const getStatusStep = (status: LeadStatus) => {
+    const steps: LeadStatus[] = ['Novo Lead', 'Em Atendimento', 'Agendado', 'Visitou', 'Matriculado'];
+    return steps.indexOf(status);
   };
-
-  const getScoreColor = (score?: string) => {
-    switch (score) {
-      case 'Quente': return 'bg-red-50 text-red-600 border-red-200 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800';
-      case 'Morno': return 'bg-amber-50 text-amber-600 border-amber-200 dark:bg-amber-900/20 dark:text-amber-400 dark:border-amber-800';
-      default: return 'bg-blue-50 text-blue-600 border-blue-200 dark:bg-blue-900/20 dark:text-blue-400 dark:border-blue-800';
-    }
-  };
-
-  const getScoreIcon = (score?: string) => {
-    switch (score) {
-      case 'Quente': return <Flame size={20} />;
-      case 'Morno': return <ThermometerSun size={20} />;
-      default: return <Snowflake size={20} />;
-    }
-  };
-
-  const pipelineSteps = ['Novo Lead', 'Em atendimento', 'Agendado', 'Visitou', 'Matriculado'];
-  const currentStepIndex = pipelineSteps.indexOf(lead.status) === -1 ? 0 : pipelineSteps.indexOf(lead.status);
 
   return (
-    <div className="animate-fade-in pb-12 flex flex-col h-full overflow-hidden">
-      
-      {/* Header & Journey Timeline */}
-      <div className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-4 lg:px-6 py-4 mb-4 lg:mb-6 sticky top-0 z-30 shadow-sm shrink-0">
-        <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4 lg:gap-6">
-          <div className="flex items-center gap-4">
-            <button 
-              onClick={onBack}
-              className="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 transition-colors"
-            >
-              <ArrowLeft size={24} />
-            </button>
-            <div className="min-w-0">
-              <h2 className="text-lg lg:text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2 truncate">
-                {lead.name}
-                <span className="text-sm font-normal text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded border border-slate-200 dark:border-slate-700 hidden sm:inline-block">#{lead.id}</span>
-              </h2>
-              <div className="flex flex-wrap items-center gap-2 text-sm text-slate-500 dark:text-slate-400 mt-1">
-                <span className={`flex items-center gap-1 px-2 py-0.5 rounded text-xs font-bold ${getSourceColor(lead.source)}`}>
-                  {getSourceIcon(lead.source)} {lead.source}
-                </span>
-                <span className="hidden sm:inline">•</span>
-                <span className="text-xs sm:text-sm">Entrou: {new Date(lead.createdAt).toLocaleDateString('pt-BR')}</span>
+    <div className="space-y-8 animate-fade-in pb-20">
+      {/* Header */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <div className="flex items-center gap-4">
+          <button 
+            onClick={() => setCurrentView(ViewState.LEADS)}
+            className="p-3 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-xl text-slate-500 hover:text-primary transition-all"
+          >
+            <ArrowLeft size={20} />
+          </button>
+          <div>
+            <div className="flex items-center gap-3 mb-1">
+              <h2 className="text-3xl font-display font-black dark:text-white uppercase tracking-tight">{lead.responsibleName}</h2>
+              <div className={`px-2 py-0.5 rounded-md text-[10px] font-black text-white uppercase tracking-widest ${
+                lead.score === 'Quente' ? 'bg-primary' : 
+                lead.score === 'Morno' ? 'bg-amber-500' : 'bg-blue-500'
+              }`}>
+                {lead.score}
               </div>
             </div>
+            <p className="text-slate-500 dark:text-slate-400 font-medium">Lead registrado em {format(new Date(lead.createdAt), "dd 'de' MMMM", { locale: ptBR })}</p>
           </div>
+        </div>
 
-          {/* Mini Journey Pipeline */}
-          <div className="flex-1 max-w-2xl mx-auto hidden md:block">
-            <div className="relative">
-              <div className="absolute top-1/2 left-0 w-full h-1 bg-slate-100 dark:bg-slate-800 -translate-y-1/2 rounded"></div>
-              <div 
-                className="absolute top-1/2 left-0 h-1 bg-emerald-500 -translate-y-1/2 rounded transition-all duration-500"
-                style={{ width: `${(currentStepIndex / (pipelineSteps.length - 1)) * 100}%` }}
-              ></div>
-              <div className="relative flex justify-between">
-                {pipelineSteps.map((step, index) => {
-                  const isActive = index <= currentStepIndex;
-                  const isCurrent = index === currentStepIndex;
-                  return (
-                    <div key={step} className="flex flex-col items-center gap-2 cursor-default group">
-                      <div className={`w-3 h-3 rounded-full border-2 transition-colors duration-300 z-10 ${isActive ? 'bg-emerald-500 border-emerald-500' : 'bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-600'} ${isCurrent ? 'ring-4 ring-emerald-100 dark:ring-emerald-900/30' : ''}`}></div>
-                      <span className={`text-[10px] font-bold uppercase transition-colors duration-300 ${isActive ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400 dark:text-slate-600'}`}>{step}</span>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
-          
-          <div className="hidden xl:block w-32"></div> {/* Spacer */}
+        <div className="flex items-center gap-3">
+          <button 
+            onClick={() => setShowDeleteModal(true)}
+            className="p-3 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
+          >
+            <Trash2 size={20} />
+          </button>
+          <div className="h-8 w-[1px] bg-slate-200 dark:bg-slate-800 mx-1" />
+          <button className="flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-xl font-bold shadow-lg shadow-primary/20 hover:scale-105 transition-all">
+            <CheckCircle2 size={18} />
+            <span>Matricular Agora</span>
+          </button>
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-4 pb-8">
-        <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-          
-          {/* COLUMN 1: LEAD DNA */}
-          <div className="space-y-6">
-            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm p-6">
-              <h3 className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase mb-4 flex items-center gap-2">
-                <User size={16} /> Dados do Lead
-              </h3>
-              
-              <div className="flex items-center gap-4 mb-6">
-                 <div className="w-16 h-16 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400 font-bold text-2xl border-2 border-white dark:border-slate-700 shadow-sm shrink-0">
-                   {lead.name.charAt(0)}
-                 </div>
-                 <div className="min-w-0">
-                   <p className="font-bold text-lg text-slate-900 dark:text-white truncate">{lead.name}</p>
-                   <a href={`https://wa.me/${lead.whatsapp?.replace(/\D/g, '')}`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400 font-medium text-sm hover:underline mt-0.5">
-                     <MessageSquare size={14} /> {lead.whatsapp}
-                   </a>
-                 </div>
+      {/* Pipeline Progress */}
+      <div className="card-glass p-8">
+        <div className="flex justify-between items-center max-w-4xl mx-auto px-4">
+          {['Novo', 'Contato', 'Agendado', 'Visitou', 'Matriculado'].map((step, i) => {
+            const currentStep = getStatusStep(lead.status);
+            const active = i <= currentStep;
+            const isCurrent = i === currentStep;
+            
+            return (
+              <div key={step} className="flex flex-col items-center relative flex-1">
+                {/* Connector */}
+                {i < 4 && (
+                  <div className={`absolute top-5 left-[50%] right-[-50%] h-[2px] z-0 ${i < currentStep ? 'bg-primary' : 'bg-slate-100 dark:bg-slate-800'}`} />
+                )}
+                
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center z-10 transition-colors duration-500 border-4 ${
+                  active ? 'bg-primary text-white border-primary/20' : 'bg-white dark:bg-slate-900 text-slate-300 border-slate-100 dark:border-slate-800 shadow-inner'
+                } ${isCurrent ? 'ring-4 ring-primary/10' : ''}`}>
+                  {i < currentStep ? <CheckCircle2 size={20} /> : <span className="text-sm font-bold">{i + 1}</span>}
+                </div>
+                <span className={`mt-3 text-[11px] font-bold uppercase tracking-widest ${active ? 'text-slate-700 dark:text-slate-200' : 'text-slate-300'}`}>
+                  {step}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        {/* Left Column: Info & Details */}
+        <div className="lg:col-span-4 space-y-6">
+          {/* Quick Actions */}
+          <div className="card-glass p-6">
+            <h3 className="font-display font-bold text-sm uppercase tracking-widest text-slate-400 mb-6">Ações Rápidas</h3>
+            <div className="grid grid-cols-2 gap-3">
+              <a href={`tel:${lead.whatsapp}`} className="flex flex-col items-center gap-2 p-4 bg-slate-50 dark:bg-slate-900 rounded-2xl border border-transparent hover:border-primary/20 transition-all hover:bg-white text-slate-600 dark:text-slate-300 hover:text-primary">
+                <Phone size={20} strokeWidth={2.5} />
+                <span className="text-[10px] font-bold uppercase">Ligar</span>
+              </a>
+              <a href={`https://wa.me/${lead.whatsapp}`} target="_blank" className="flex flex-col items-center gap-2 p-4 bg-slate-50 dark:bg-slate-900 rounded-2xl border border-transparent hover:border-green-200 transition-all hover:bg-white text-slate-600 dark:text-slate-300 hover:text-green-600">
+                <MessageCircle size={20} strokeWidth={2.5} />
+                <span className="text-[10px] font-bold uppercase">WhatsApp</span>
+              </a>
+              <a href={`mailto:${lead.email}`} className="flex flex-col items-center gap-2 p-4 bg-slate-50 dark:bg-slate-900 rounded-2xl border border-transparent hover:border-blue-200 transition-all hover:bg-white text-slate-600 dark:text-slate-300 hover:text-blue-600">
+                <Mail size={20} strokeWidth={2.5} />
+                <span className="text-[10px] font-bold uppercase">E-mail</span>
+              </a>
+              <button className="flex flex-col items-center gap-2 p-4 bg-slate-50 dark:bg-slate-900 rounded-2xl border border-transparent hover:border-amber-200 transition-all hover:bg-white text-slate-600 dark:text-slate-300 hover:text-amber-500">
+                <Calendar size={20} strokeWidth={2.5} />
+                <span className="text-[10px] font-bold uppercase">Agendar</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Lead Info Card */}
+          <div className="card-glass p-6 overflow-hidden">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="font-display font-bold text-sm uppercase tracking-widest text-slate-400">Dados do Lead</h3>
+              <div className="p-2 hover:bg-slate-50 rounded-lg transition-colors cursor-pointer"><MoreVertical size={16} /></div>
+            </div>
+            
+            <div className="space-y-6">
+              <div>
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Programa</p>
+                <div className="flex items-center gap-2">
+                  <div className="p-1.5 bg-primary/10 text-primary rounded-lg"><Zap size={14} /></div>
+                  <p className="text-sm font-bold dark:text-white uppercase tracking-tight">{lead.program}</p>
+                </div>
               </div>
 
-              <div className="space-y-4 border-t border-slate-100 dark:border-slate-800 pt-4">
-                 <div className="flex items-center justify-between group">
-                    <div className="flex items-center gap-3">
-                      <div className="bg-blue-50 dark:bg-blue-900/20 p-2 rounded-lg text-blue-600 dark:text-blue-400"><Baby size={18} /></div>
-                      <div>
-                        <p className="text-xs text-slate-400 dark:text-slate-500 uppercase font-bold">Criança</p>
-                        <p className="font-medium text-slate-700 dark:text-slate-200">{lead.childName}</p>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <span className="text-xs text-slate-400 dark:text-slate-500">{lead.childAge} Anos</span>
-                      <p className="text-xs font-bold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded">{lead.program}</p>
-                    </div>
-                 </div>
-                 
-                 <div className="flex items-center gap-3">
-                    <div className="bg-purple-50 dark:bg-purple-900/20 p-2 rounded-lg text-purple-600 dark:text-purple-400"><Clock size={18} /></div>
-                    <div>
-                      <p className="text-xs text-slate-400 dark:text-slate-500 uppercase font-bold">Última Interação</p>
-                      <p className="font-medium text-slate-700 dark:text-slate-200">
-                        {new Date(lead.lastContactAt).toLocaleDateString('pt-BR')} <span className="text-slate-400 text-xs">às 14:30</span>
-                      </p>
-                    </div>
-                 </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Criança</p>
+                  <p className="text-sm font-semibold dark:text-slate-200">{lead.childName}</p>
+                  <p className="text-[10px] text-slate-400">{lead.childAge} anos</p>
+                </div>
+                <div>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Status</p>
+                  <div className="flex items-center gap-1.5">
+                    <div className="w-2 h-2 rounded-full bg-primary" />
+                    <p className="text-xs font-bold dark:text-white">{lead.status}</p>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Última Interação</p>
+                <div className="flex items-center gap-2 text-slate-600 dark:text-slate-400">
+                  <Clock size={14} />
+                  <p className="text-xs font-medium">{format(new Date(lead.lastInteraction), "dd/MM/yyyy 'às' HH:mm")}</p>
+                </div>
               </div>
             </div>
+          </div>
 
-            {/* Smart Indicators */}
-            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm p-6">
-              <h3 className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase mb-4 flex items-center gap-2">
-                <Activity size={16} /> Indicadores Inteligentes
-              </h3>
-              <div className="grid grid-cols-2 gap-3">
-                 <div className="bg-slate-50 dark:bg-slate-800/50 p-3 rounded-xl border border-slate-100 dark:border-slate-700">
-                   <p className="text-[10px] text-slate-400 uppercase font-bold mb-1">Tempo 1ª Resp</p>
-                   <p className="text-lg font-bold text-emerald-600 dark:text-emerald-400">2 min</p>
-                 </div>
-                 <div className="bg-slate-50 dark:bg-slate-800/50 p-3 rounded-xl border border-slate-100 dark:border-slate-700">
-                   <p className="text-[10px] text-slate-400 uppercase font-bold mb-1">Interações</p>
-                   <p className="text-lg font-bold text-blue-600 dark:text-blue-400">{lead.interactionsCount || 8}</p>
-                 </div>
-                 <div className="bg-slate-50 dark:bg-slate-800/50 p-3 rounded-xl border border-slate-100 dark:border-slate-700">
-                   <p className="text-[10px] text-slate-400 uppercase font-bold mb-1">Probabilidade</p>
-                   <p className="text-lg font-bold text-amber-500 dark:text-amber-400">{lead.probability || 'Alta'}</p>
-                 </div>
-                 <div className="bg-slate-50 dark:bg-slate-800/50 p-3 rounded-xl border border-slate-100 dark:border-slate-700">
-                   <p className="text-[10px] text-slate-400 uppercase font-bold mb-1">Engajamento</p>
-                   <div className="flex text-amber-400 mt-1"><Flame size={16} fill="currentColor" /><Flame size={16} fill="currentColor" /><Flame size={16} className="text-slate-200 dark:text-slate-600" /></div>
-                 </div>
-              </div>
+          <div className="card-glass p-6 bg-gradient-to-br from-primary/5 to-white dark:to-slate-900 border-primary/10">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2 bg-primary/20 text-primary rounded-xl"><Zap size={18} weight="fill" /></div>
+              <h3 className="font-display font-bold text-sm tracking-tight dark:text-white">Indicadores IA</h3>
             </div>
-
-            {/* Related Leads (Siblings) */}
-            {lead.siblings && lead.siblings.length > 0 && (
-              <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm p-6">
-                 <h3 className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase mb-4 flex items-center gap-2">
-                  <UserCheck size={16} /> Relacionamentos
-                </h3>
-                <div className="space-y-3">
-                  {lead.siblings.map((sib, idx) => (
-                    <div key={idx} className="flex items-center justify-between bg-slate-50 dark:bg-slate-800 p-3 rounded-lg">
-                      <div className="flex items-center gap-3">
-                         <div className="w-8 h-8 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center font-bold text-xs">{sib.name.charAt(0)}</div>
-                         <div>
-                           <p className="font-bold text-sm text-slate-700 dark:text-slate-200">{sib.name}</p>
-                           <p className="text-xs text-slate-500">{sib.age} anos</p>
-                         </div>
-                      </div>
-                      <span className="text-[10px] font-bold bg-green-100 text-green-700 px-2 py-0.5 rounded-full">{sib.status}</span>
-                    </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="p-3 bg-white/50 dark:bg-slate-950/50 rounded-xl border border-white/20">
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Conversão</p>
+                <p className="text-xl font-black text-primary">{lead.probability}%</p>
+              </div>
+              <div className="p-3 bg-white/50 dark:bg-slate-950/50 rounded-xl border border-white/20">
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Score</p>
+                <div className="flex items-center gap-1">
+                  {[...Array(3)].map((_, i) => (
+                    <Zap 
+                      key={i} 
+                      size={14} 
+                      className={i < lead.engagement ? 'text-primary fill-primary' : 'text-slate-200'}
+                    />
                   ))}
                 </div>
               </div>
-            )}
-          </div>
-
-          {/* COLUMN 2: CONTEXT & TIMELINE */}
-          <div className="space-y-6 h-full flex flex-col">
-            {/* AI Summary Card */}
-            <div className="bg-purple-50 dark:bg-purple-900/10 rounded-2xl border border-purple-100 dark:border-purple-800/30 p-6 shadow-sm">
-               <div className="flex justify-between items-start mb-3">
-                 <h3 className="text-sm font-bold text-purple-800 dark:text-purple-300 uppercase flex items-center gap-2">
-                   <Bot size={18} /> Resumo IA
-                 </h3>
-                 <span className="text-[10px] text-purple-600 dark:text-purple-400 bg-purple-100 dark:bg-purple-900/50 px-2 py-1 rounded-full font-bold">Atualizado agora</span>
-               </div>
-               <p className="text-slate-700 dark:text-slate-300 text-sm leading-relaxed mb-4">
-                 {lead.summary || "Responsável demonstrou alto interesse. Agendamento sugerido, aguardando confirmação do horário pelo pai."}
-               </p>
-               <button className="w-full py-2 bg-white dark:bg-slate-800 border border-purple-200 dark:border-purple-700 text-purple-700 dark:text-purple-300 rounded-lg text-sm font-bold hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-colors flex items-center justify-center gap-2">
-                 <MessageSquare size={16} /> Ver Conversa Completa
-               </button>
             </div>
+          </div>
+        </div>
 
-            {/* Visual Timeline */}
-            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm p-6 flex-1 flex flex-col min-h-[400px]">
-              <h3 className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase mb-6 flex items-center gap-2">
-                <Clock size={16} /> Linha do Tempo
-              </h3>
-              
-              <div className="relative flex-1 pl-4 space-y-8">
-                {/* Continuous Vertical Line */}
-                <div className="absolute top-2 bottom-0 left-[23px] w-0.5 bg-slate-200 dark:bg-slate-700"></div>
-                
-                {(lead.history || []).map((event, index) => {
-                   let icon = <MessageSquare size={14} />;
-                   let colorClass = "bg-blue-500 border-blue-100";
-                   let textColor = "text-blue-700";
-
-                   if (event.type === 'ai') {
-                      icon = <Bot size={14} />;
-                      colorClass = "bg-purple-500 border-purple-100";
-                      textColor = "text-purple-700 dark:text-purple-400";
-                   } else if (event.type === 'system') {
-                      icon = <Settings size={14} />;
-                      colorClass = "bg-slate-500 border-slate-100";
-                      textColor = "text-slate-700 dark:text-slate-400";
-                   } else if (event.type === 'message' && event.user === 'Lead') {
-                      icon = <User size={14} />;
-                      colorClass = "bg-emerald-500 border-emerald-100";
-                      textColor = "text-emerald-700 dark:text-emerald-400";
-                   }
-
-                   return (
-                    <div key={index} className="relative pl-10 group cursor-pointer">
-                      {/* Timestamp bubble */}
-                      <div className="absolute -left-2 top-0 text-[10px] font-bold text-slate-400 bg-white dark:bg-slate-900 px-1 py-0.5 z-10">
-                        {event.date.split(',')[0]}
-                      </div>
-                      
-                      {/* Icon Node */}
-                      <div className={`absolute left-[14px] top-6 w-5 h-5 rounded-full ${colorClass} text-white flex items-center justify-center border-4 border-white dark:border-slate-900 shadow-sm z-10`}>
-                        {icon}
-                      </div>
-
-                      {/* Card Content */}
-                      <div className="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-xl border border-slate-100 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-600 transition-colors">
-                         <div className="flex justify-between items-start mb-1">
-                            <span className={`text-xs font-bold uppercase ${textColor}`}>{event.user}</span>
-                            <span className="text-[10px] text-slate-400">{event.date.split(',')[1]}</span>
-                         </div>
-                         <p className="font-bold text-slate-800 dark:text-white text-sm mb-1">{event.action}</p>
-                         {event.detail && (
-                           <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed bg-white dark:bg-slate-900/50 p-2 rounded-lg mt-2 border border-slate-100 dark:border-slate-700/50 italic">
-                             "{event.detail}"
-                           </p>
-                         )}
-                      </div>
-                    </div>
-                   );
-                })}
+        {/* Right Column: AI Summary & Timeline */}
+        <div className="lg:col-span-8 space-y-8">
+          {/* AI Summary Section */}
+          <div className="card-glass p-8 border-l-4 border-l-primary">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-white shadow-lg shadow-primary/20">
+                <Zap size={18} />
+              </div>
+              <h3 className="font-display font-bold text-lg dark:text-white">Resumo Inteligente</h3>
+            </div>
+            <div className="space-y-4">
+              <p className="text-slate-600 dark:text-slate-400 leading-relaxed font-medium">
+                {lead.aiSummary}
+              </p>
+              <div className="flex items-center gap-4 pt-4 border-t border-slate-100 dark:border-slate-800">
+                <div className="flex items-center gap-2">
+                  <div className="w-1.5 h-1.5 rounded-full bg-green-500" />
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Altas chances de visita</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">IA Atendimento Ativo</span>
+                </div>
               </div>
             </div>
           </div>
 
-          {/* COLUMN 3: COMMERCIAL ACTION */}
+          {/* Timeline & Notes */}
           <div className="space-y-6">
-            
-            {/* Status Card */}
-            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm p-6">
-               <div className="flex items-center justify-between mb-6">
-                  <h3 className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase">Status Comercial</h3>
-                  <span className="bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded text-xs font-bold text-slate-600 dark:text-slate-300">
-                    ID: {lead.id}
-                  </span>
-               </div>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-display font-bold text-xl dark:text-white tracking-tight">Linha do Tempo</h3>
+              <div className="flex items-center gap-2 text-[11px] font-bold text-slate-400 uppercase tracking-widest">
+                <Filter size={12} />
+                <span>Todos os eventos</span>
+              </div>
+            </div>
 
-               <div className="mb-6 text-center">
-                 <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full border-2 text-sm font-bold shadow-sm mb-4 ${getScoreColor(lead.score)}`}>
-                   {getScoreIcon(lead.score)}
-                   Score: {lead.score || 'Morno'}
-                 </div>
-                 
-                 <div className="grid grid-cols-2 gap-4 text-left">
-                    <div className="bg-slate-50 dark:bg-slate-800 p-3 rounded-lg border border-slate-100 dark:border-slate-700">
-                      <p className="text-[10px] text-slate-400 uppercase font-bold">Responsável</p>
-                      <p className="text-sm font-bold text-slate-800 dark:text-white truncate">{lead.owner || 'Não atribuído'}</p>
+            {/* Note Input */}
+            <div className="card-glass p-4 focus-within:ring-2 focus-within:ring-primary/10 transition-all">
+              <textarea 
+                placeholder="Adicionar nota interna ou observação comercial..."
+                value={noteContent}
+                onChange={(e) => setNoteContent(e.target.value)}
+                className="w-full bg-transparent border-none focus:ring-0 text-sm p-2 min-h-[100px] dark:text-white resize-none"
+              />
+              <div className="flex items-center justify-between mt-2 pt-2 border-t border-slate-50 dark:border-slate-800/50">
+                <div className="flex gap-1 text-slate-400">
+                  <button className="p-2 hover:bg-slate-50 dark:hover:bg-slate-900 rounded-lg transition-colors"><Zap size={18} /></button>
+                  <button className="p-2 hover:bg-slate-50 dark:hover:bg-slate-900 rounded-lg transition-colors"><FileText size={18} /></button>
+                </div>
+                <button 
+                  onClick={handleSaveNote}
+                  disabled={!noteContent.trim()}
+                  className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-xl text-xs font-bold hover:bg-primary-hover disabled:opacity-50 transition-all"
+                >
+                  <Send size={14} />
+                  <span>Salvar Nota</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Events List */}
+            <div className="relative space-y-6 before:absolute before:left-5 before:top-2 before:bottom-2 before:w-[2px] before:bg-slate-100 dark:before:bg-slate-900">
+              {lead.history.map((event) => (
+                <div key={event.id} className="relative pl-12">
+                  <div className={`absolute left-0 top-0 w-10 h-10 rounded-xl flex items-center justify-center z-10 shadow-sm border ${
+                    event.type === 'ai' ? 'bg-primary text-white border-primary' :
+                    event.type === 'note' ? 'bg-amber-500 text-white border-amber-500' :
+                    event.type === 'system' ? 'bg-slate-100 text-slate-500 border-slate-200' :
+                    'bg-blue-500 text-white border-blue-500'
+                  }`}>
+                    {event.type === 'ai' ? <Zap size={18} /> : 
+                     event.type === 'note' ? <FileText size={18} /> : 
+                     event.type === 'system' ? <AlertCircle size={18} /> : 
+                     <User size={18} />}
+                  </div>
+                  <div className="card-glass p-5">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+                        {event.type === 'ai' ? 'Agente IA' : 
+                         event.type === 'note' ? 'Nota Interna' : 
+                         event.type === 'system' ? 'Ação do Sistema' : 'Consultor'}
+                      </span>
+                      <span className="text-[10px] font-bold text-slate-300">
+                        {format(new Date(event.createdAt), "dd 'de' MMM, HH:mm", { locale: ptBR })}
+                      </span>
                     </div>
-                    <div className="bg-slate-50 dark:bg-slate-800 p-3 rounded-lg border border-slate-100 dark:border-slate-700">
-                      <p className="text-[10px] text-slate-400 uppercase font-bold">Melhor Horário</p>
-                      <p className="text-sm font-bold text-slate-800 dark:text-white">{lead.bestTime || 'Tarde'}</p>
-                    </div>
-                 </div>
-               </div>
-
-               {/* Next Action Box */}
-               <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl p-4 mb-2">
-                  <p className="text-[10px] text-amber-700 dark:text-amber-400 uppercase font-bold flex items-center gap-1 mb-1">
-                    <CheckCircle2 size={12} /> Próxima Ação Recomendada
-                  </p>
-                  <p className="text-lg font-bold text-amber-900 dark:text-amber-100">
-                    {lead.nextAction || 'Ligar para agendar'}
-                  </p>
-               </div>
+                    <p className="text-sm font-medium text-slate-600 dark:text-slate-300 leading-relaxed">
+                      {event.content}
+                    </p>
+                  </div>
+                </div>
+              ))}
             </div>
-
-            {/* Quick Actions */}
-            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm p-6">
-               <h3 className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase mb-4 flex items-center gap-2">
-                 <Settings size={16} /> Ações Rápidas
-               </h3>
-               <div className="grid grid-cols-2 gap-3">
-                 <button className="flex flex-col items-center justify-center p-3 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-800 hover:bg-emerald-100 dark:hover:bg-emerald-900/40 transition-colors font-bold text-xs gap-2">
-                   <PhoneCall size={20} /> Ligar
-                 </button>
-                 <button className="flex flex-col items-center justify-center p-3 rounded-xl bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 border border-green-100 dark:border-green-800 hover:bg-green-100 dark:hover:bg-green-900/40 transition-colors font-bold text-xs gap-2">
-                   <MessageSquare size={20} /> WhatsApp
-                 </button>
-                 <button className="flex flex-col items-center justify-center p-3 rounded-xl bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 border border-blue-100 dark:border-blue-800 hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors font-bold text-xs gap-2">
-                   <Calendar size={20} /> Agendar
-                 </button>
-                 <button className="flex flex-col items-center justify-center p-3 rounded-xl bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-400 border border-indigo-100 dark:border-indigo-800 hover:bg-indigo-100 dark:hover:bg-indigo-900/40 transition-colors font-bold text-xs gap-2">
-                   <Mail size={20} /> Email
-                 </button>
-                 <button className="col-span-2 flex flex-row items-center justify-center p-3 rounded-xl bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 border border-red-100 dark:border-red-800 hover:bg-red-100 dark:hover:bg-red-900/40 transition-colors font-bold text-xs gap-2">
-                   <XCircle size={16} /> Desqualificar Lead
-                 </button>
-               </div>
-            </div>
-
-            {/* Internal Notes */}
-            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm p-6 flex-1">
-               <h3 className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase mb-4 flex items-center gap-2">
-                 <FileText size={16} /> Observações Internas
-               </h3>
-               <textarea 
-                 className="w-full h-32 p-3 text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-400 resize-none"
-                 placeholder="Escreva uma observação para o time..."
-               ></textarea>
-               <div className="flex justify-end mt-2">
-                 <button className="px-4 py-2 bg-slate-800 dark:bg-white text-white dark:text-slate-900 text-xs font-bold rounded-lg hover:opacity-90 transition-opacity">
-                   Salvar Nota
-                 </button>
-               </div>
-            </div>
-
           </div>
-
         </div>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      <AnimatePresence>
+        {showDeleteModal && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowDeleteModal(false)}
+              className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"
+            />
+            <motion.div 
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="bg-white dark:bg-slate-950 p-8 rounded-3xl shadow-2xl relative z-10 max-w-sm w-full border border-slate-100 dark:border-slate-900"
+            >
+              <div className="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-6">
+                <AlertCircle size={32} />
+              </div>
+              <h3 className="text-xl font-display font-bold text-center mb-2 dark:text-white">Desqualificar Lead?</h3>
+              <p className="text-slate-500 text-center text-sm mb-8 leading-relaxed">Isso moverá o lead para a lixeira/perdidos. Esta ação pode ser desfeita posteriormente nos filtros.</p>
+              <div className="grid grid-cols-2 gap-3">
+                <button 
+                  onClick={() => setShowDeleteModal(false)}
+                  className="py-3 px-4 bg-slate-100 dark:bg-slate-900 text-slate-600 dark:text-slate-400 font-bold rounded-xl hover:bg-slate-200 transition-all"
+                >
+                  Cancelar
+                </button>
+                <button 
+                  onClick={() => {
+                    updateLeadStatus(lead.id, 'Perdido');
+                    setShowDeleteModal(false);
+                    setCurrentView(ViewState.LEADS);
+                  }}
+                  className="py-3 px-4 bg-red-600 text-white font-bold rounded-xl hover:bg-red-700 shadow-lg shadow-red-200 dark:shadow-none transition-all"
+                >
+                  Confirmar
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

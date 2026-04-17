@@ -1,8 +1,8 @@
 
 export const config = {
   company: {
-    name: "Bear Lead",
-    unit: "Instituição",
-    phone: "(11) 3333-3333"
+    name: "Maple Bear",
+    brand: "Bear Lead",
+    phone: "Inteligência & IA"
   }
 };

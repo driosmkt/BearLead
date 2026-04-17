@@ -1,0 +1,47 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&family=Raleway:wght@700;800&family=Lato:wght@400;700&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Poppins", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Raleway", sans-serif;
+  --font-financial: "Lato", sans-serif;
+  
+  --color-primary: #dc2626;
+  --color-primary-hover: #b91c1c;
+}
+
+@layer base {
+  body {
+    @apply bg-slate-50 text-slate-900 font-sans;
+  }
+}
+
+@layer components {
+  .card-glass {
+    @apply bg-white/80 backdrop-blur-md border border-slate-100 shadow-sm rounded-2xl;
+  }
+  
+  .btn-primary {
+    @apply bg-primary hover:bg-primary-hover text-white font-semibold py-2 px-4 rounded-xl transition-all active:scale-95;
+  }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  @apply bg-transparent;
+}
+::-webkit-scrollbar-thumb {
+  @apply bg-slate-200 rounded-full hover:bg-slate-300 transition-colors;
+}
+
+/* Kanban Animations */
+.kanban-column {
+  @apply flex flex-col gap-4 min-h-[500px] p-2 bg-slate-100/50 rounded-2xl border border-transparent transition-colors;
+}
+
+.kanban-column.drag-over {
+  @apply bg-primary/5 border-primary/20;
+}

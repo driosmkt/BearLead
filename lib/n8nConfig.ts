@@ -58,7 +58,7 @@ export const n8nConfig = {
     score:      'Morno',
     program:    'A definir',
     source:     'Outros',
-    unit_id:    '4f340e23-9911-498f-8fae-245b08835284',   // ← preencher com o UUID da unidade padrão
+    unit_id:    '',   // ← preencher após rodar schema.sql e copiar o UUID da tabela units
   },
 
 };

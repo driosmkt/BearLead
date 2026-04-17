@@ -1,23 +1,28 @@
-import path from 'path';
-import { defineConfig, loadEnv } from 'vite';
-import react from '@vitejs/plugin-react';
 
-export default defineConfig(({ mode }) => {
-    const env = loadEnv(mode, '.', '');
-    return {
-      server: {
-        port: 3000,
-        host: '0.0.0.0',
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+import tailwindcss from '@tailwindcss/vite';
+
+// https://vitejs.dev/config/
+export default defineConfig({
+  plugins: [
+    react(),
+    tailwindcss(),
+  ],
+  // 'base' como './' garante que o site funcione em qualquer subpasta (ex: /recomeco/)
+  base: './',
+  build: {
+    outDir: 'dist',
+    assetsDir: 'assets',
+    // Usando esbuild (padrão) em vez de terser para evitar erro de dependência
+    minify: 'esbuild',
+    sourcemap: false,
+    rollupOptions: {
+      output: {
+        entryFileNames: `assets/[name].[hash].js`,
+        chunkFileNames: `assets/[name].[hash].js`,
+        assetFileNames: `assets/[name].[hash].[ext]`
       },
-      plugins: [react()],
-      define: {
-        'process.env.API_KEY': JSON.stringify(env.GEMINI_API_KEY),
-        'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY)
-      },
-      resolve: {
-        alias: {
-          '@': path.resolve(__dirname, '.'),
-        }
-      }
-    };
+    },
+  },
 });

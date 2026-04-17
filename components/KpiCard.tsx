@@ -1,57 +1,47 @@
 import React from 'react';
-import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
-import { MetricCardProps } from '../types';
+import { LucideIcon } from 'lucide-react';
+import { motion } from 'motion/react';
 
-export const KpiCard: React.FC<MetricCardProps> = ({
-  title,
-  value,
-  trendValue,
-  trendDirection,
-  statusLabel,
-  statusColor,
-  icon,
-  iconBgColor = 'bg-red-50',
-  iconColor = 'text-red-600'
+interface KpiCardProps {
+  title: string;
+  value: string | number;
+  icon: LucideIcon;
+  trend?: string;
+  trendPositive?: boolean;
+  color?: string;
+  delay?: number;
+}
+
+export const KpiCard: React.FC<KpiCardProps> = ({ 
+  title, 
+  value, 
+  icon: Icon, 
+  trend, 
+  trendPositive,
+  color = "primary",
+  delay = 0
 }) => {
-  const getStatusColor = () => {
-    switch (statusColor) {
-      case 'red': return 'bg-red-600 text-white dark:bg-red-700';
-      case 'yellow': return 'bg-amber-500 text-white dark:bg-amber-600';
-      case 'green': return 'bg-emerald-500 text-white dark:bg-emerald-600';
-      default: return 'bg-slate-500 text-white';
-    }
-  };
-
-  const getTrendColor = () => {
-    switch (trendDirection) {
-      case 'up': return 'text-emerald-500 dark:text-emerald-400';
-      case 'down': return 'text-red-500 dark:text-red-400';
-      default: return 'text-slate-500 dark:text-slate-400';
-    }
-  };
-
   return (
-    <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col justify-between h-full hover:shadow-md transition-all duration-200">
-      <div className="flex justify-between items-start mb-2">
-        <span className="text-slate-500 dark:text-slate-400 font-medium text-sm">{title}</span>
-        <div className={`p-2 rounded-lg ${iconBgColor} ${iconColor}`}>
-          {icon}
+    <motion.div 
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay }}
+      className="card-glass p-6 group hover:shadow-xl hover:shadow-primary/5 transition-all"
+    >
+      <div className="flex items-start justify-between mb-4">
+        <div className={`p-3 rounded-2xl bg-${color}/10 text-${color} group-hover:scale-110 transition-transform duration-300`}>
+          <Icon size={24} />
         </div>
+        {trend && (
+          <div className={`flex items-center gap-1 text-[11px] font-bold px-2 py-1 rounded-full ${trendPositive ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'}`}>
+            {trendPositive ? '↑' : '↓'} {trend}
+          </div>
+        )}
       </div>
-
       <div>
-        <div className="text-4xl font-bold text-slate-900 dark:text-white mb-2">{value}</div>
-        <div className={`flex items-center gap-1 text-sm font-medium mb-4 ${getTrendColor()}`}>
-          {trendDirection === 'up' && <TrendingUp size={16} />}
-          {trendDirection === 'down' && <TrendingDown size={16} />}
-          {trendDirection === 'neutral' && <Minus size={16} />}
-          <span>{trendValue}</span>
-        </div>
+        <p className="text-sm font-medium text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-1 font-display">{title}</p>
+        <h3 className="text-3xl font-display font-extrabold dark:text-white tabular-nums">{value}</h3>
       </div>
-
-      <div className={`py-1.5 px-4 rounded-full text-xs font-bold inline-block text-center w-full ${getStatusColor()}`}>
-        {statusLabel}
-      </div>
-    </div>
+    </motion.div>
   );
 };
