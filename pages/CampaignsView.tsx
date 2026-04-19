@@ -5,8 +5,7 @@ import {
   DollarSign, 
   BarChart3, 
   MousePointer2,
-  ExternalLink,
-  ChevronRight
+    ChevronRight
 } from 'lucide-react';
 import { KpiCard } from '../components/KpiCard';
 
@@ -24,17 +23,14 @@ export const CampaignsView: React.FC = () => {
           <h2 className="text-3xl font-display font-black dark:text-white">Métricas de Campanhas</h2>
           <p className="text-slate-500 dark:text-slate-400 font-medium">Desempenho dos anúncios digitais da Maple Bear Petrolina.</p>
         </div>
-        <button className="flex items-center gap-2 bg-white dark:bg-slate-900 px-4 py-2 rounded-xl border border-slate-100 dark:border-slate-800 shadow-sm transition-all hover:bg-slate-50">
-          <ExternalLink size={16} className="text-primary" />
-          <span className="text-sm font-bold dark:text-slate-300">Gerenciador de Anúncios</span>
-        </button>
+        
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        <KpiCard title="Total Gasto" value="R$ 903,10" icon={DollarSign} trend="15% vs last month" trendPositive={false} delay={0.1} />
-        <KpiCard title="Custo Médio Lead" value="R$ 9,03" icon={TrendingUp} trend="2.5% decrease" trendPositive={true} delay={0.2} color="emerald-500" />
-        <KpiCard title="Leads Gerados" value="100" icon={Megaphone} trend="22% growth" trendPositive={true} delay={0.3} color="blue-500" />
-        <KpiCard title="CTR Médio" value="2.8%" icon={MousePointer2} trend="stable" trendPositive={true} delay={0.4} color="amber-500" />
+        <KpiCard title="Total Gasto" value="R$ 903,10" icon={DollarSign} trend="↓15% vs mês anterior" trendPositive={false} delay={0.1} />
+        <KpiCard title="Custo Médio Lead" value="R$ 9,03" icon={TrendingUp} trend="↓2,5% no custo" trendPositive={true} delay={0.2} color="emerald-500" />
+        <KpiCard title="Leads Gerados" value="100" icon={Megaphone} trend="↑22% de crescimento" trendPositive={true} delay={0.3} color="blue-500" />
+        <KpiCard title="CTR Médio" value="2.8%" icon={MousePointer2} trend="↔ Estável" trendPositive={true} delay={0.4} color="amber-500" />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
