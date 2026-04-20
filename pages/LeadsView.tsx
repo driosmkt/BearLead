@@ -49,6 +49,7 @@ export const LeadsView: React.FC = () => {
   const [activeScores,   setActiveScores]   = useState<string[]>([]);
   const [activeSources,  setActiveSources]  = useState<string[]>([]);
   const [activePrograms, setActivePrograms] = useState<string[]>([]);
+  const [showLost,       setShowLost]       = useState(false);
 
   const toggleFilter = (list: string[], setList: (v: string[]) => void, val: string) => {
     setList(list.includes(val) ? list.filter(x => x !== val) : [...list, val]);
@@ -71,8 +72,9 @@ export const LeadsView: React.FC = () => {
     const matchScore   = activeScores.length   === 0 || activeScores.includes(l.score);
     const matchSource  = activeSources.length  === 0 || activeSources.includes(l.origin);
     const matchProgram = activePrograms.length === 0 || activePrograms.includes(l.program);
+    const matchLost    = showLost ? true : l.status !== 'Perdido';
 
-    return matchSearch && matchScore && matchSource && matchProgram;
+    return matchSearch && matchScore && matchSource && matchProgram && matchLost;
   }), [leads, searchTerm, activeScores, activeSources, activePrograms]);
 
   const handleDragOver = (e: React.DragEvent, status: LeadStatus) => {
@@ -179,6 +181,20 @@ export const LeadsView: React.FC = () => {
                     onClick={() => toggleFilter(activeSources, setActiveSources, s)} />
                 ))}
               </div>
+            </div>
+
+            {/* Toggle perdidos */}
+            <div className="flex items-center justify-between pt-3 border-t border-slate-50 dark:border-slate-800">
+              <div>
+                <p className="text-xs font-bold text-slate-600 dark:text-slate-300">Mostrar leads perdidos</p>
+                <p className="text-[10px] text-slate-400">Exibe leads desqualificados no Kanban</p>
+              </div>
+              <button
+                onClick={() => setShowLost(v => !v)}
+                className={`w-11 h-6 rounded-full relative transition-colors duration-300 ${showLost ? 'bg-red-600' : 'bg-slate-200 dark:bg-slate-700'}`}
+              >
+                <div className={`absolute top-1 w-4 h-4 rounded-full bg-white shadow transition-all duration-300 ${showLost ? 'left-6' : 'left-1'}`} />
+              </button>
             </div>
 
             {/* Resumo */}

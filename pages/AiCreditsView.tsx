@@ -122,20 +122,20 @@ export const AiCreditsView: React.FC = () => {
       </div>
 
 
-      {/* Banner de boas-vindas — 50 créditos grátis */}
-      {credits && credits.total_used === 0 && credits.balance === 50 && (
-        <div className="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-2xl p-5 flex items-start gap-4">
-          <div className="w-10 h-10 bg-emerald-100 dark:bg-emerald-900/30 rounded-xl flex items-center justify-center shrink-0">
-            <Sparkles size={20} className="text-emerald-600" />
+      {/* Banner de orientação — sempre visível */}
+      {credits && (
+        <div className="bg-violet-50 dark:bg-violet-900/20 border border-violet-200 dark:border-violet-800 rounded-2xl p-5 flex items-start gap-4">
+          <div className="w-10 h-10 bg-violet-100 dark:bg-violet-900/30 rounded-xl flex items-center justify-center shrink-0">
+            <Sparkles size={20} className="text-violet-600" />
           </div>
           <div className="flex-1">
-            <p className="font-bold text-emerald-700 dark:text-emerald-400 text-sm">🎉 Bem-vindo ao Bear Lead!</p>
-            <p className="text-xs text-emerald-600 dark:text-emerald-500 mt-0.5 leading-relaxed">
-              Sua conta foi ativada com <strong>50 créditos IA gratuitos</strong> para você experimentar a Quebra de Objeção.
-              Sem necessidade de cartão — use à vontade e adquira mais quando precisar.
+            <p className="font-bold text-violet-700 dark:text-violet-400 text-sm">Use seus créditos para Quebra de Objeção via IA</p>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 leading-relaxed">
+              Quando um lead estiver em <strong>Follow-up de Recuperação</strong>, registre a objeção principal na tela do lead
+              e clique em <strong>"Gerar sugestões"</strong> — a IA analisa o contexto e entrega 3 estratégias prontas para
+              WhatsApp, E-mail e Ligação.
             </p>
           </div>
-          <span className="text-2xl font-display font-black text-emerald-600 shrink-0">50</span>
         </div>
       )}
 

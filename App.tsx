@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { Sidebar }     from './components/Sidebar';
 import { Header }      from './components/Header';
-import { DemoBanner }  from './components/DemoBanner';
+import { DemoBanner }     from './components/DemoBanner';
+import { WelcomeBanner }  from './components/WelcomeBanner';
 import { LeadsProvider, useLeadsContext } from './context/LeadsContext';
 import { AuthProvider, useAuth }          from './context/AuthContext';
 import { LoginView }   from './pages/LoginView';
@@ -49,7 +50,7 @@ const AppContent: React.FC = () => {
       case ViewState.LEADS:        return <LeadsView />;
       case ViewState.LEAD_DETAIL:  return <LeadDetailView />;
       case ViewState.CAMPAIGNS:    return <CampaignsView />;
-      case ViewState.SUBSCRIPTION: return isAdmin ? <SubscriptionView /> : <DashboardView />;
+      case ViewState.SUBSCRIPTION: return isAdmin ? <SubscriptionView /> : <DashboardView />;  // só admin
       case ViewState.N8N_CONFIG:   return isAdmin ? <N8nConfigView /> : <DashboardView />;
       case ViewState.SETTINGS:     return <SettingsView />;
       case ViewState.REPORTS:      return <ReportsView />;
@@ -65,6 +66,7 @@ const AppContent: React.FC = () => {
       <div className="flex-1 flex flex-col md:ml-72 min-w-0">
         <Header onOpenSidebar={() => setIsSidebarOpen(true)} />
         <DemoBanner />
+        {currentView === ViewState.DASHBOARD && <WelcomeBanner />}
         <main className="flex-1 p-4 md:p-8 overflow-x-hidden">
           <div className="max-w-7xl mx-auto">
             {renderView()}
