@@ -18,17 +18,14 @@ function assignTime(leadId: string): string {
 
 function distributeLeadsOnDays(leads: Lead[], month: number, year: number): Record<number, Lead[]> {
   const result: Record<number, Lead[]> = {};
-  const daysInMonth = new Date(year, month + 1, 0).getDate();
   leads.forEach(lead => {
-    const num = parseInt(lead.id.replace(/\D/g, '')) || 0;
-    const day = (num % daysInMonth) + 1;
+    // Usar visit_date real do lead
+    if (!lead.visitDate) return;
+    const d = new Date(lead.visitDate + 'T12:00:00');
+    if (d.getMonth() !== month || d.getFullYear() !== year) return;
+    const day = d.getDate();
     if (!result[day]) result[day] = [];
     result[day].push(lead);
-  });
-  Object.keys(result).forEach(day => {
-    result[Number(day)].sort((a, b) =>
-      assignTime(a.id).localeCompare(assignTime(b.id))
-    );
   });
   return result;
 }

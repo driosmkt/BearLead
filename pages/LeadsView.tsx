@@ -7,14 +7,15 @@ import { motion, AnimatePresence } from 'motion/react';
 import { NewLeadModal }    from '../components/NewLeadModal';
 import { KanbanSkeleton } from '../components/KanbanSkeleton';
 
-const columns: { id: LeadStatus; label: string }[] = [
-  { id: 'Novo Lead',             label: 'Início'         },
-  { id: 'Em Atendimento',        label: 'Em Contato'     },
-  { id: 'Agendado',              label: 'Visita Agendada'},
+const BASE_COLUMNS: { id: LeadStatus; label: string }[] = [
+  { id: 'Novo Lead',             label: 'Início'          },
+  { id: 'Em Atendimento',        label: 'Em Contato'      },
+  { id: 'Agendado',              label: 'Visita Agendada' },
   { id: 'Visitou',               label: 'Visita Realizada'},
-  { id: 'Matriculado',           label: 'Matrícula'      },
-  { id: 'Follow-up Recuperação', label: 'Recuperação'    },
+  { id: 'Matriculado',           label: 'Matrícula'       },
+  { id: 'Follow-up Recuperação', label: 'Recuperação'     },
 ];
+const LOST_COLUMN = { id: 'Perdido' as LeadStatus, label: 'Perdidos' };
 
 const PROGRAMS = ['Bear Care','Toddler','Nursery','Junior Kindergarten','Senior Kindergarten','Elementary'];
 const SOURCES  = ['Facebook Ads','Google Ads','Instagram','Indicação','Site','Outros'];
@@ -50,6 +51,7 @@ export const LeadsView: React.FC = () => {
   const [activeSources,  setActiveSources]  = useState<string[]>([]);
   const [activePrograms, setActivePrograms] = useState<string[]>([]);
   const [showLost,       setShowLost]       = useState(false);
+  const columns = showLost ? [...BASE_COLUMNS, LOST_COLUMN] : BASE_COLUMNS;
 
   const toggleFilter = (list: string[], setList: (v: string[]) => void, val: string) => {
     setList(list.includes(val) ? list.filter(x => x !== val) : [...list, val]);
@@ -75,7 +77,7 @@ export const LeadsView: React.FC = () => {
     const matchLost    = showLost ? true : l.status !== 'Perdido';
 
     return matchSearch && matchScore && matchSource && matchProgram && matchLost;
-  }), [leads, searchTerm, activeScores, activeSources, activePrograms]);
+  }), [leads, searchTerm, activeScores, activeSources, activePrograms, showLost]);
 
   const handleDragOver = (e: React.DragEvent, status: LeadStatus) => {
     e.preventDefault();
@@ -100,6 +102,16 @@ export const LeadsView: React.FC = () => {
           <p className="text-slate-500 dark:text-slate-400 font-medium">Gerencie seu funil de vendas e qualificação.</p>
         </div>
         <div className="flex items-center gap-3">
+          <button
+            onClick={() => setShowLost(v => !v)}
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all border
+              ${showLost
+                ? 'bg-red-50 dark:bg-red-900/20 text-red-600 border-red-200 dark:border-red-800'
+                : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 hover:bg-slate-50'
+              }`}
+          >
+            <span>{showLost ? '👁 Ocultar Perdidos' : '👁 Mostrar Perdidos'}</span>
+          </button>
           <button
             onClick={() => setShowFilters(v => !v)}
             className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all border relative
@@ -181,20 +193,6 @@ export const LeadsView: React.FC = () => {
                     onClick={() => toggleFilter(activeSources, setActiveSources, s)} />
                 ))}
               </div>
-            </div>
-
-            {/* Toggle perdidos */}
-            <div className="flex items-center justify-between pt-3 border-t border-slate-50 dark:border-slate-800">
-              <div>
-                <p className="text-xs font-bold text-slate-600 dark:text-slate-300">Mostrar leads perdidos</p>
-                <p className="text-[10px] text-slate-400">Exibe leads desqualificados no Kanban</p>
-              </div>
-              <button
-                onClick={() => setShowLost(v => !v)}
-                className={`w-11 h-6 rounded-full relative transition-colors duration-300 ${showLost ? 'bg-red-600' : 'bg-slate-200 dark:bg-slate-700'}`}
-              >
-                <div className={`absolute top-1 w-4 h-4 rounded-full bg-white shadow transition-all duration-300 ${showLost ? 'left-6' : 'left-1'}`} />
-              </button>
             </div>
 
             {/* Resumo */}
