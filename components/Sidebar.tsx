@@ -1,5 +1,5 @@
 import React from 'react';
-import { LayoutDashboard, Users, Megaphone, FileBarChart, CreditCard, LogOut, Moon, Sun, X, Workflow } from 'lucide-react';
+import { LayoutDashboard, Users, Megaphone, FileBarChart, CreditCard, LogOut, Moon, Sun, X, Workflow, Zap } from 'lucide-react';
 import { ViewState } from '../types';
 import { useLeadsContext } from '../context/LeadsContext';
 import { useAuth } from '../context/AuthContext';
@@ -24,6 +24,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
     { id: ViewState.LEADS,        label: 'Central de Leads', icon: Users },
     { id: ViewState.CAMPAIGNS,    label: 'Campanhas',        icon: Megaphone },
     { id: ViewState.REPORTS,      label: 'Relatórios',       icon: FileBarChart },
+    { id: ViewState.AI_CREDITS,   label: 'Créditos IA',      icon: Zap },
     { id: ViewState.SUBSCRIPTION, label: 'Assinatura',       icon: CreditCard },
   ];
 
@@ -110,7 +111,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
               <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3 px-4">Conta</p>
               <div className="space-y-1">
                 {bottomItems
-                  .filter(item => item.id !== 'TEAM' || isAdmin)
+                  .filter(item => (item.id !== 'TEAM' && item.id !== 'SUBSCRIPTION') || isAdmin)
                   .map(item => <NavItem key={item.id} item={item} />)
                 }
               </div>

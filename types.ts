@@ -7,7 +7,8 @@ export enum ViewState {
   REPORTS = 'REPORTS',
   N8N_CONFIG = 'N8N_CONFIG',
   SETTINGS   = 'SETTINGS',
-  TEAM       = 'TEAM'
+  TEAM       = 'TEAM',
+  AI_CREDITS = 'AI_CREDITS'
 }
 
 export type LeadStatus = 

@@ -1,188 +1,164 @@
 import React, { useState } from 'react';
 import {
-  CreditCard, Zap, TrendingUp, Download, ChevronDown, ChevronUp,
-  Shield, CheckCircle2, Plus
+  CreditCard, CheckCircle2, Clock, FileText,
+  ChevronDown, ChevronUp, AlertCircle, ExternalLink, Zap
 } from 'lucide-react';
-import {
-  ResponsiveContainer, PieChart, Pie, Cell
-} from 'recharts';
 
-const creditData = [
-  { value: 72, color: '#dc2626' },
-  { value: 28, color: '#f1f5f9' },
-];
+// ─── Dados reais virão da integração Asaas ────────────────────────────────────
+// Por enquanto a tela mostra o plano e aguarda integração de pagamento
 
-const billingHistory = [
-  { date: '12 Abr, 2026', id: '#BR-92837', amount: 'R$ 997,00', status: 'Pago' },
-  { date: '12 Mar, 2026', id: '#BR-91204', amount: 'R$ 997,00', status: 'Pago' },
-  { date: '12 Fev, 2026', id: '#BR-89651', amount: 'R$ 997,00', status: 'Pago' },
-];
+const PLAN = {
+  name:     'Bear Lead Pro',
+  status:   'Ativo',
+  price:    'R$ 497,00',
+  cycle:    'mensal',
+  nextDate: '—',   // virá do Asaas
+  features: [
+    'Kanban ilimitado de leads',
+    'Integração n8n (SDR + Closer)',
+    'Dashboard em tempo real',
+    'Agendamento de visitas',
+    'Linha do tempo com IA',
+    'Relatórios de performance',
+    'Equipe com 2 níveis de acesso',
+    'Suporte prioritário',
+  ],
+};
 
 export const SubscriptionView: React.FC = () => {
-  const [showAll, setShowAll] = useState(false);
+  const [showBilling, setShowBilling] = useState(false);
 
   return (
-    <div className="space-y-8 animate-fade-in">
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
-        <div>
-          <h2 className="text-3xl font-display font-black dark:text-white">Assinatura e Créditos</h2>
-          <p className="text-slate-500 dark:text-slate-400 font-medium">Gerencie seu plano Essentials e saldo de interações da IA.</p>
+    <div className="space-y-6 animate-fade-in pb-16 max-w-3xl">
+
+      <div>
+        <h2 className="text-3xl font-display font-black dark:text-white">Assinatura</h2>
+        <p className="text-slate-500 dark:text-slate-400 font-medium">Seu plano e dados de faturamento.</p>
+      </div>
+
+      {/* Plano atual */}
+      <div className="card-glass p-6">
+        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-5">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 bg-red-50 dark:bg-red-900/20 rounded-2xl flex items-center justify-center shrink-0">
+              <CreditCard size={22} className="text-red-600" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <p className="font-display font-bold text-lg dark:text-white">{PLAN.name}</p>
+                <span className="text-[10px] font-black bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 px-2 py-0.5 rounded-full uppercase tracking-widest">
+                  {PLAN.status}
+                </span>
+              </div>
+              <p className="text-sm text-slate-400 mt-0.5">
+                <span className="font-bold text-slate-700 dark:text-slate-200">{PLAN.price}</span> / {PLAN.cycle}
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 text-xs text-slate-400 bg-slate-50 dark:bg-slate-800 px-3 py-2 rounded-xl shrink-0">
+            <Clock size={13} />
+            <span>Próxima cobrança: <strong className="text-slate-600 dark:text-slate-300">{PLAN.nextDate}</strong></span>
+          </div>
         </div>
-        <div className="flex items-center gap-2 text-emerald-600 bg-emerald-50 dark:bg-emerald-900/20 px-4 py-2 rounded-xl border border-emerald-100 dark:border-emerald-800">
-          <CheckCircle2 size={16} />
-          <span className="text-sm font-bold">Plano Ativo</span>
+
+        <div className="grid grid-cols-2 gap-2 mb-5">
+          {PLAN.features.map((f, i) => (
+            <div key={i} className="flex items-center gap-2 text-xs text-slate-600 dark:text-slate-400">
+              <CheckCircle2 size={13} className="text-emerald-500 shrink-0" />
+              {f}
+            </div>
+          ))}
+        </div>
+
+        <div className="flex gap-3 pt-5 border-t border-slate-50 dark:border-slate-800">
+          <button className="px-4 py-2 text-xs font-bold text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-xl transition-all">
+            Cancelar plano
+          </button>
+          <button className="px-4 py-2 text-xs font-bold text-white bg-red-600 hover:bg-red-700 rounded-xl transition-all shadow-sm shadow-red-600/20">
+            Fazer upgrade
+          </button>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        <div className="lg:col-span-8 space-y-8">
-
-          {/* Plano atual */}
-          <div className="rounded-3xl overflow-hidden bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-8 text-white shadow-2xl">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-              <div>
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">Plano Atual</p>
-                <h3 className="text-4xl font-display font-black mb-4">Bear Lead Essentials</h3>
-                <div className="flex flex-wrap gap-6">
-                  <div>
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Próxima Renovação</p>
-                    <p className="font-bold text-lg">12 de Maio, 2026</p>
-                  </div>
-                  <div>
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Investimento</p>
-                    <p className="font-bold text-lg">R$ 997,00/mês</p>
-                  </div>
-                </div>
-              </div>
-              <div className="flex flex-col gap-3 min-w-[180px]">
-                <button className="px-6 py-3 bg-white text-slate-900 rounded-xl font-bold hover:scale-105 transition-all text-sm flex items-center justify-center gap-2">
-                  <TrendingUp size={16} /> Mudar Plano
-                </button>
-                <button className="px-6 py-3 bg-slate-700 text-white rounded-xl font-bold hover:bg-slate-600 transition-all text-sm">
-                  Gerenciar Faturamento
-                </button>
-              </div>
+      {/* Histórico de cobranças — aguarda Asaas */}
+      <div className="card-glass overflow-hidden">
+        <div className="flex items-center justify-between p-6">
+          <h3 className="font-display font-bold text-base dark:text-white flex items-center gap-2">
+            <FileText size={16} className="text-slate-400" /> Histórico de Cobranças
+          </h3>
+          <span className="text-[10px] font-bold bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 px-2 py-1 rounded-lg uppercase tracking-widest">
+            Em breve
+          </span>
+        </div>
+        <div className="px-6 pb-6 border-t border-slate-50 dark:border-slate-800 pt-4">
+          <div className="flex items-start gap-3 bg-slate-50 dark:bg-slate-800 rounded-xl p-4">
+            <Zap size={16} className="text-amber-500 mt-0.5 shrink-0" />
+            <div>
+              <p className="text-sm font-semibold dark:text-white">Integração com Asaas em andamento</p>
+              <p className="text-xs text-slate-400 mt-0.5 leading-relaxed">
+                O histórico de cobranças, notas fiscais e gestão do plano serão gerenciados via Asaas —
+                a plataforma de pagamentos recorrentes líder no Brasil. Em breve disponível aqui.
+              </p>
+              <a href="https://asaas.com" target="_blank" rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 text-xs font-bold text-blue-600 hover:text-blue-700 mt-2 transition-colors">
+                Saiba mais sobre o Asaas <ExternalLink size={11} />
+              </a>
             </div>
           </div>
+        </div>
+      </div>
 
-          {/* ROI */}
-          <div className="card-glass p-8">
-            <h3 className="font-display font-bold text-lg mb-8 dark:text-white">Resumo Financeiro</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-              <div>
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Investimento Anual</p>
-                <p className="text-2xl font-black font-financial dark:text-white">R$ 11.964,00</p>
-                <div className="h-1.5 bg-red-600 w-12 mt-2 rounded-full" />
-              </div>
-              <div>
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Receita Facilitada</p>
-                <p className="text-2xl font-black font-financial text-emerald-600">R$ 5.412.000</p>
-                <p className="text-[10px] text-slate-400 mt-1">Projeção LTV (320 matrículas acumuladas)*</p>
-              </div>
-              <div>
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Relação Receita/Inv.</p>
-                <p className="text-2xl font-black font-financial text-red-600">451x</p>
-                <p className="text-[10px] text-slate-400 mt-1">Receita gerada por real investido</p>
-              </div>
-            </div>
-            <p className="text-[10px] text-slate-400 mt-6 pt-4 border-t border-slate-100 dark:border-slate-800">
-              * Projeção baseada em LTV médio de matrículas atribuídas ao funil Bear Lead. Não representa lucro direto.
-            </p>
-          </div>
-
-          {/* Histórico */}
-          <div className="card-glass p-8">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="font-display font-bold text-lg dark:text-white">Histórico de Cobranças</h3>
-              <button className="flex items-center gap-2 text-sm font-bold text-red-600 hover:text-red-700 transition-colors">
-                <Download size={16} /> Download CSV
-              </button>
-            </div>
-            <div className="space-y-3">
-              {billingHistory.map((item, i) => (
-                <div key={i} className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-900 rounded-2xl">
-                  <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 bg-white dark:bg-slate-800 rounded-xl flex items-center justify-center shadow-sm border border-slate-100 dark:border-slate-700">
-                      <CreditCard size={16} className="text-slate-400" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-bold dark:text-white">{item.date}</p>
-                      <p className="text-[10px] text-slate-400 font-mono">{item.id}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-4">
-                    <span className="font-bold font-financial dark:text-white">{item.amount}</span>
-                    <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 dark:bg-emerald-900/30 px-2 py-0.5 rounded-full">{item.status}</span>
-                  </div>
+      {/* Dados de faturamento */}
+      <div className="card-glass overflow-hidden">
+        <button
+          onClick={() => setShowBilling(v => !v)}
+          className="w-full flex items-center justify-between p-6 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors"
+        >
+          <h3 className="font-display font-bold text-base dark:text-white flex items-center gap-2">
+            <CreditCard size={16} className="text-slate-400" /> Dados de Faturamento
+          </h3>
+          {showBilling ? <ChevronUp size={16} className="text-slate-400" /> : <ChevronDown size={16} className="text-slate-400" />}
+        </button>
+        {showBilling && (
+          <div className="px-6 pb-6 border-t border-slate-50 dark:border-slate-800 pt-4 space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {[
+                { label: 'Razão Social',  value: '—' },
+                { label: 'CNPJ',          value: '—' },
+                { label: 'E-mail',        value: '—' },
+                { label: 'Endereço',      value: '—' },
+              ].map((f, i) => (
+                <div key={i}>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">{f.label}</p>
+                  <p className="text-sm font-semibold text-slate-400 dark:text-slate-500">{f.value}</p>
                 </div>
               ))}
             </div>
-            <button onClick={() => setShowAll(!showAll)} className="w-full mt-4 flex items-center justify-center gap-2 text-sm font-bold text-slate-400 hover:text-slate-600 transition-colors py-2">
-              {showAll ? <><ChevronUp size={16} /> Ver menos</> : <><ChevronDown size={16} /> Ver histórico completo</>}
-            </button>
+            <div className="flex items-center gap-2 bg-amber-50 dark:bg-amber-900/20 p-3 rounded-xl">
+              <AlertCircle size={13} className="text-amber-600 shrink-0" />
+              <p className="text-xs text-amber-700 dark:text-amber-400">
+                Para atualizar os dados de faturamento, entre em contato com o suporte Bear Lead.
+              </p>
+            </div>
           </div>
-        </div>
-
-        <div className="lg:col-span-4 space-y-6">
-          {/* Créditos IA */}
-          <div className="card-glass p-8">
-            <div className="flex items-center justify-between mb-8">
-              <h3 className="font-display font-bold text-lg dark:text-white">Créditos IA</h3>
-              <Zap size={20} className="text-red-600 fill-red-600" />
-            </div>
-
-            {/* Donut com label centralizada — posicionamento relativo correto */}
-            <div className="relative h-[180px] mb-8">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={creditData}
-                    cx="50%" cy="50%"
-                    innerRadius={58} outerRadius={78}
-                    startAngle={90} endAngle={450}
-                    dataKey="value"
-                    strokeWidth={0}
-                  >
-                    {creditData.map((entry, i) => <Cell key={i} fill={entry.color} />)}
-                  </Pie>
-                </PieChart>
-              </ResponsiveContainer>
-              <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                <span className="text-3xl font-black font-display dark:text-white leading-none">72%</span>
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Utilizado</span>
-              </div>
-            </div>
-
-            <div className="space-y-4 mb-8">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Uso este mês</span>
-                <span className="text-xs font-black dark:text-white tabular-nums">720 / 1.000</span>
-              </div>
-              <div className="h-2 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
-                <div className="h-full bg-red-600 rounded-full" style={{ width: '72%' }} />
-              </div>
-            </div>
-
-            <button className="w-full py-3 bg-slate-900 dark:bg-slate-100 dark:text-slate-900 text-white rounded-xl font-bold text-sm hover:scale-[1.02] transition-all flex items-center justify-center gap-2">
-              <Plus size={18} /> Recarregar Créditos
-            </button>
-          </div>
-
-          {/* LGPD */}
-          <div className="rounded-3xl bg-gradient-to-br from-blue-600 to-blue-700 p-6 text-white">
-            <div className="flex items-center gap-3 mb-3">
-              <Shield size={24} />
-              <h3 className="font-display font-bold">Proteção de Dados Garantida</h3>
-            </div>
-            <p className="text-sm text-blue-100 leading-relaxed mb-4">
-              Seus leads e informações comerciais estão protegidos sob protocolos de segurança de nível bancário e conformidade com a LGPD.
-            </p>
-            <button className="flex items-center gap-2 text-sm font-bold text-white underline underline-offset-2">
-              <CheckCircle2 size={16} /> Ver Certificado
-            </button>
-          </div>
-        </div>
+        )}
       </div>
+
+      {/* Suporte */}
+      <div className="card-glass p-5 flex items-center gap-4">
+        <div className="w-10 h-10 bg-blue-50 dark:bg-blue-900/20 rounded-xl flex items-center justify-center shrink-0">
+          <AlertCircle size={18} className="text-blue-600" />
+        </div>
+        <div className="flex-1">
+          <p className="text-sm font-bold dark:text-white">Precisa de ajuda com sua assinatura?</p>
+          <p className="text-xs text-slate-400 mt-0.5">Entre em contato com o suporte Bear Lead.</p>
+        </div>
+        <a href="https://wa.me/5587991659981" target="_blank" rel="noopener noreferrer"
+          className="px-4 py-2 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl transition-all whitespace-nowrap">
+          WhatsApp
+        </a>
+      </div>
+
     </div>
   );
 };

@@ -14,6 +14,7 @@ import { CampaignsView }    from './pages/CampaignsView';
 import { SubscriptionView } from './pages/SubscriptionView';
 import { N8nConfigView }    from './pages/N8nConfigView';
 import { SettingsView }     from './pages/SettingsView';
+import { AiCreditsView }    from './pages/AiCreditsView';
 import { ReportsView }      from './pages/ReportsView';
 import { TeamView }         from './pages/TeamView';
 
@@ -53,6 +54,7 @@ const AppContent: React.FC = () => {
       case ViewState.SETTINGS:     return <SettingsView />;
       case ViewState.REPORTS:      return <ReportsView />;
       case ViewState.TEAM:         return isAdmin ? <TeamView /> : <DashboardView />;
+      case ViewState.AI_CREDITS:   return <AiCreditsView />;
       default:                     return <DashboardView />;
     }
   };
