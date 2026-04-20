@@ -4,7 +4,8 @@
 // PATCH → atualiza lead (Agente Closer ou SDR em qualquer etapa)
 // ============================================================
 
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { createClient }      from 'https://esm.sh/@supabase/supabase-js@2';
+import { createCalendarEvent } from './google-calendar.ts';
 import { z } from 'https://deno.land/x/zod@v3.22.4/mod.ts';
 
 const corsHeaders = {
@@ -225,6 +226,28 @@ Deno.serve(async (req: Request) => {
       return new Response(JSON.stringify({ error: 'Erro ao atualizar lead' }), {
         status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
+    }
+
+    // Google Calendar — criar evento se for agendamento
+    if (d.status === 'Agendado' && d.visit_date && d.visit_time) {
+      const { data: leadData } = await supabase
+        .from('leads')
+        .select('responsible_name, child_name, program, whatsapp, email')
+        .eq('id', d.lead_id)
+        .single();
+
+      if (leadData) {
+        await createCalendarEvent({
+          responsibleName: leadData.responsible_name,
+          childName:       leadData.child_name,
+          program:         leadData.program,
+          visitDate:       d.visit_date,
+          visitTime:       d.visit_time,
+          visitors:        d.visitors ?? leadData.responsible_name,
+          email:           d.email ?? leadData.email,
+          whatsapp:        leadData.whatsapp,
+        });
+      }
     }
 
     // Evento na linha do tempo

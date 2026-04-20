@@ -14,8 +14,8 @@ interface LeadsContextType {
   selectedLeadId:   string | null;
   setSelectedLeadId:(id: string | null) => void;
   // Ações
-  updateLeadStatus: (leadId: string, newStatus: LeadStatus) => void;
-  addNote:          (leadId: string, content: string, type?: string) => void;
+  updateLeadStatus: (leadId: string, newStatus: LeadStatus, actor?: string) => void;
+  addNote:          (leadId: string, content: string, type?: string, actor?: string) => void;
   refetch:          () => void;
   // Métricas
   metrics: {

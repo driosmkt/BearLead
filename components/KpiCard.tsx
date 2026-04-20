@@ -33,7 +33,7 @@ export const KpiCard: React.FC<KpiCardProps> = ({
           <Icon size={24} />
         </div>
         {trend && (
-          <div className={`flex items-center gap-1 text-[11px] font-bold px-2 py-1 rounded-full ${trendPositive ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'}`}>
+          <div className={`flex items-center gap-1 text-[11px] font-bold px-2 py-1 rounded-full ${trendPositive ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400' : 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400'}`}>
             {trendPositive ? '↑' : '↓'} {trend}
           </div>
         )}

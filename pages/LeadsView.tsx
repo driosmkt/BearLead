@@ -4,7 +4,8 @@ import { LeadCard } from '../components/LeadCard';
 import { LeadStatus, ViewState } from '../types';
 import { Search, Plus, Filter, LayoutGrid, List, X, ChevronDown } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { NewLeadModal } from '../components/NewLeadModal';
+import { NewLeadModal }    from '../components/NewLeadModal';
+import { KanbanSkeleton } from '../components/KanbanSkeleton';
 
 const columns: { id: LeadStatus; label: string }[] = [
   { id: 'Novo Lead',             label: 'Início'         },
@@ -36,7 +37,7 @@ const Pill: React.FC<{
 );
 
 export const LeadsView: React.FC = () => {
-  const { leads, updateLeadStatus, setCurrentView, setSelectedLeadId } = useLeadsContext();
+  const { leads, updateLeadStatus, setCurrentView, setSelectedLeadId, loading } = useLeadsContext();
 
   const [searchTerm,     setSearchTerm]     = useState('');
   const [showFilters,    setShowFilters]     = useState(false);
@@ -220,8 +221,15 @@ export const LeadsView: React.FC = () => {
         </div>
       </div>
 
+      {/* Loading skeleton */}
+      {loading && (
+        <div className="flex-1 overflow-x-auto pb-6">
+          <KanbanSkeleton />
+        </div>
+      )}
+
       {/* Vista em Lista */}
-      {viewMode === 'list' && (
+      {!loading && viewMode === 'list' && (
         <div className="flex-1 overflow-y-auto space-y-2">
           {filteredLeads.length === 0 && (
             <div className="flex flex-col items-center justify-center py-20 text-slate-400">
@@ -258,7 +266,8 @@ export const LeadsView: React.FC = () => {
       )}
 
       {/* Kanban */}
-      {viewMode === 'grid' && <div className="flex-1 overflow-x-auto pb-6 scrollbar-thin">
+      {!loading && viewMode === 'grid' && (
+      <div className="flex-1 overflow-x-auto pb-6 scrollbar-thin">
         <div className="flex gap-6 min-w-[1400px] h-full">
           {columns.map((column) => (
             <div
@@ -314,7 +323,8 @@ export const LeadsView: React.FC = () => {
             </div>
           ))}
         </div>
-      </div>}
+      </div>
+      )}
 
     </div>
 

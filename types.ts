@@ -20,10 +20,11 @@ export type LeadStatus =
 export type LeadScore = 'Quente' | 'Morno' | 'Frio';
 
 export interface LeadHistory {
-  id: string;
-  leadId: string;
-  type: 'system' | 'ai' | 'lead' | 'consultant' | 'note';
-  content: string;
+  id:        string;
+  leadId:    string;
+  type:      'system' | 'ai' | 'lead' | 'consultant' | 'note';
+  content:   string;
+  actor?:    string; // quem realizou a ação (nome ou email)
   createdAt: string;
 }
 
@@ -51,6 +52,9 @@ export interface Lead {
   childAge: number;
   unitId: string;
   nextAction?: string;
+  visitDate?: string;  // YYYY-MM-DD
+  visitTime?: string;  // HH:MM
+  visitors?:  string;  // quem vai na visita
 }
 
 export interface Unit {

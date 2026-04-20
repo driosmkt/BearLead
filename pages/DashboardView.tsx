@@ -4,13 +4,14 @@ import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'rec
 import { useLeadsContext } from '../context/LeadsContext';
 import { KpiCard } from '../components/KpiCard';
 import { ViewState } from '../types';
-import { CalendarWidget } from '../components/CalendarWidget';
+import { CalendarWidget }   from '../components/CalendarWidget';
+import { DashboardSkeleton } from '../components/KanbanSkeleton';
 
 // chartData calculado a partir dos leads reais (últimos 7 dias)
 // definido dentro do componente para ter acesso ao contexto
 
 export const DashboardView: React.FC = () => {
-  const { metrics, leads, setCurrentView, setSelectedLeadId } = useLeadsContext();
+  const { metrics, leads, setCurrentView, setSelectedLeadId, loading } = useLeadsContext();
 
   // Gráfico: agrupa leads dos últimos 7 dias por dia da semana
   const chartData = React.useMemo(() => {
@@ -37,8 +38,8 @@ export const DashboardView: React.FC = () => {
 
   return (
     <div className="space-y-8 animate-fade-in">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+      {loading && <DashboardSkeleton />}
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4" style={{visibility: loading ? 'hidden' : 'visible', height: loading ? 0 : 'auto', overflow: loading ? 'hidden' : 'visible'}}>
         <div>
           <h2 className="text-3xl font-display font-black dark:text-white">Dashboard de Performance</h2>
           <p className="text-slate-500 dark:text-slate-400 font-medium">Bem-vindo, Douglas. Aqui está o resumo da Maple Bear Petrolina.</p>

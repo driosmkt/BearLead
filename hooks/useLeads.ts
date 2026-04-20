@@ -26,6 +26,9 @@ function dbRowToLead(row: any, history: LeadHistory[] = []): Lead {
     childAge:          row.child_age         ?? 1,
     unitId:            row.unit_id,
     nextAction:        row.next_action       ?? '',
+    visitDate:         row.visit_date        ?? undefined,
+    visitTime:         row.visit_time        ?? undefined,
+    visitors:          row.owner             ?? undefined,
     history,
   };
 }
@@ -36,6 +39,7 @@ function dbRowToHistory(row: any): LeadHistory {
     leadId:    row.lead_id,
     type:      row.type      ?? 'system',
     content:   row.action    ?? row.detail ?? '',
+    actor:     row.actor     ?? null,
     createdAt: row.created_at,
   };
 }
@@ -89,7 +93,7 @@ export function useLeads() {
     setLoading(false);
   }, []);
 
-  const updateLeadStatus = useCallback(async (leadId: string, newStatus: LeadStatus) => {
+  const updateLeadStatus = useCallback(async (leadId: string, newStatus: LeadStatus, actor?: string) => {
     // Optimistic UI — reflete imediatamente
     setLeads(prev => prev.map(l => l.id === leadId ? { ...l, status: newStatus } : l));
     if (isDemo) return;
@@ -101,16 +105,37 @@ export function useLeads() {
 
     if (error) {
       console.error('[useLeads] Erro ao atualizar status:', error.message);
-      fetchLeads(); // reverte se falhou
+      fetchLeads();
+      return;
     }
+
+    // Registrar mudança de status na linha do tempo
+    const statusLabels: Record<string, string> = {
+      'Novo Lead':             'Lead movido para Início',
+      'Em Atendimento':        'Lead em atendimento',
+      'Agendado':              'Visita agendada',
+      'Visitou':               'Visita realizada ✓',
+      'Matriculado':           'Lead matriculado 🎉',
+      'Follow-up Recuperação': 'Lead em recuperação',
+      'Perdido':               'Lead desqualificado',
+    };
+
+    await supabase.from('lead_history').insert({
+      lead_id: leadId,
+      type:    'system',
+      action:  statusLabels[newStatus] ?? `Status atualizado para ${newStatus}`,
+      detail:  actor ? `Por: ${actor}` : null,
+      actor:   actor ?? null,
+    });
   }, [isDemo, fetchLeads]);
 
-  const addNote = useCallback(async (leadId: string, content: string, type = 'note') => {
+  const addNote = useCallback(async (leadId: string, content: string, type = 'note', actor?: string) => {
     const tempEntry: LeadHistory = {
       id:        `temp-${Date.now()}`,
       leadId,
       type:      type as any,
       content,
+      actor:     actor ?? null,
       createdAt: new Date().toISOString(),
     };
     // Optimistic UI
@@ -121,7 +146,7 @@ export function useLeads() {
 
     const { error } = await supabase
       .from('lead_history')
-      .insert({ lead_id: leadId, type, action: content, detail: content });
+      .insert({ lead_id: leadId, type, action: content, detail: content, actor: actor ?? null });
 
     if (error) console.error('[useLeads] Erro ao salvar nota:', error.message);
   }, [isDemo]);

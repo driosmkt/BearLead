@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { useLeadsContext } from '../context/LeadsContext';
+import { supabase } from '../lib/supabase';
+import { useAuth }   from '../context/AuthContext';
 import { ViewState, LeadStatus } from '../types';
 import {
   ArrowLeft, Phone, Mail, MessageCircle, Calendar,
@@ -13,10 +15,14 @@ import { ptBR } from 'date-fns/locale';
 
 export const LeadDetailView: React.FC = () => {
   const { leads, selectedLeadId, setCurrentView, updateLeadStatus, addNote } = useLeadsContext();
+  const { user } = useAuth();
   const [noteContent,     setNoteContent]     = useState('');
   const [noteSaved,       setNoteSaved]        = useState(false);
   const [showDeleteModal, setShowDeleteModal]  = useState(false);
-  const [showAgendar,     setShowAgendar]      = useState(false);
+  const [showAgendar,       setShowAgendar]        = useState(false);
+  const [showVisitaModal,   setShowVisitaModal]    = useState(false);
+  const [objecaoText,       setObjecaoText]        = useState('');
+  const [objecaoSaved,      setObjecaoSaved]        = useState(false);
 
   const lead = leads.find(l => l.id === selectedLeadId);
 
@@ -35,15 +41,50 @@ export const LeadDetailView: React.FC = () => {
 
   const handleSaveNote = () => {
     if (!noteContent.trim()) return;
-    addNote(lead.id, noteContent);
+    const actorName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Consultor';
+    addNote(lead.id, noteContent, 'note', actorName);
     setNoteContent('');
     setNoteSaved(true);
     setTimeout(() => setNoteSaved(false), 2500);
   };
 
-  const handleCall      = () => { const p = (lead.whatsapp || '').replace(/\D/g,''); if (p) window.location.href = `tel:+55${p}`; };
-  const handleWhatsApp  = () => { const w = (lead.whatsapp || '').replace(/\D/g,''); if (w) window.open(`https://wa.me/55${w}`,'_blank'); else alert('WhatsApp não cadastrado.'); };
-  const handleEmail     = () => { if (lead.email) window.location.href = `mailto:${lead.email}`; else alert('E-mail não cadastrado.'); };
+  const logAction = (action: string, detail: string) => {
+    const actorName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Consultor';
+    addNote(lead.id, detail, 'consultant', actorName);
+    supabase.from('lead_history').insert({
+      lead_id: lead.id,
+      type:    'consultant',
+      action,
+      detail,
+    }).then(() => {});
+  };
+
+  const handleCall = () => {
+    const p = (lead.whatsapp || '').replace(/\D/g, '');
+    if (p) {
+      window.location.href = `tel:+55${p}`;
+      logAction('Ligação iniciada', `Ligou para ${lead.whatsapp}`);
+    }
+  };
+
+  const handleWhatsApp = () => {
+    const w = (lead.whatsapp || '').replace(/\D/g, '');
+    if (w) {
+      window.open(`https://wa.me/55${w}`, '_blank');
+      logAction('WhatsApp aberto', `Abriu conversa no WhatsApp com ${lead.whatsapp}`);
+    } else {
+      alert('WhatsApp não cadastrado.');
+    }
+  };
+
+  const handleEmail = () => {
+    if (lead.email) {
+      window.location.href = `mailto:${lead.email}`;
+      logAction('E-mail iniciado', `Abriu e-mail para ${lead.email}`);
+    } else {
+      alert('E-mail não cadastrado.');
+    }
+  };
 
   const STEPS: { label: string; status: LeadStatus }[] = [
     { label: 'Novo',        status: 'Novo Lead'       },
@@ -52,7 +93,9 @@ export const LeadDetailView: React.FC = () => {
     { label: 'Visitou',     status: 'Visitou'          },
     { label: 'Matriculado', status: 'Matriculado'      },
   ];
-  const stepIdx = Math.max(0, STEPS.findIndex(s => s.status === lead.status));
+  // Follow-up Recuperação = já visitou (step 3), pipeline mostra até Visitou
+  const pipelineStatus = lead.status === 'Follow-up Recuperação' ? 'Visitou' : lead.status;
+  const stepIdx = Math.max(0, STEPS.findIndex(s => s.status === pipelineStatus));
 
   const scoreColor = lead.score === 'Quente' ? 'bg-red-600' : lead.score === 'Morno' ? 'bg-amber-500' : 'bg-blue-500';
 
@@ -84,7 +127,11 @@ export const LeadDetailView: React.FC = () => {
             <Trash2 size={18} />
           </button>
           <button
-            onClick={() => { updateLeadStatus(lead.id, 'Matriculado'); setCurrentView(ViewState.LEADS); }}
+            onClick={() => {
+              const actorName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Consultor';
+              updateLeadStatus(lead.id, 'Matriculado', actorName);
+              setCurrentView(ViewState.LEADS);
+            }}
             className="flex items-center gap-2 px-5 py-2.5 bg-red-600 text-white rounded-xl font-bold shadow-lg shadow-red-600/20 hover:bg-red-700 transition-all text-sm">
             <CheckCircle2 size={16} /> Matricular Agora
           </button>
@@ -219,6 +266,96 @@ export const LeadDetailView: React.FC = () => {
         </div>
       </div>
 
+
+
+      {/* ── Banner Follow-up Recuperação ── */}
+      {lead.status === 'Follow-up Recuperação' && (
+        <div className="card-glass border-l-4 border-l-amber-500 p-5">
+          <div className="flex flex-col sm:flex-row sm:items-start gap-4">
+            <div className="flex items-center gap-3 flex-1">
+              <div className="w-10 h-10 bg-amber-50 dark:bg-amber-900/20 rounded-xl flex items-center justify-center shrink-0">
+                <Clock size={20} className="text-amber-600" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <p className="text-sm font-black text-amber-700 dark:text-amber-400 uppercase tracking-wide">Já Visitou a Escola</p>
+                  <span className="text-[10px] font-bold bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 px-2 py-0.5 rounded-full uppercase tracking-widest">Follow-up</span>
+                </div>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Lead conheceu a escola e está em processo de decisão. Registre a objeção para gerar estratégia de abordagem.</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Campo de objeção */}
+          <div className="mt-4 pt-4 border-t border-amber-100 dark:border-amber-900/30">
+            <label className="block text-[10px] font-black text-amber-700 dark:text-amber-400 uppercase tracking-widest mb-2">
+              Qual foi a objeção principal?
+            </label>
+            <div className="flex gap-2">
+              <input
+                value={objecaoText}
+                onChange={e => { setObjecaoText(e.target.value); setObjecaoSaved(false); }}
+                onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey && objecaoText.trim()) { e.preventDefault(); const actorName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Consultor'; addNote(lead.id, `Objeção registrada: ${objecaoText}`, 'consultant', actorName); setObjecaoSaved(true); setTimeout(() => setObjecaoText(''), 1500); } }}
+                placeholder="Ex: Preço alto, distância, quer pensar mais, comparando com outra escola..."
+                className="flex-1 px-3 py-2.5 bg-white dark:bg-slate-900 border border-amber-200 dark:border-amber-800/50 rounded-xl text-sm dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500/20 placeholder:text-slate-400"
+              />
+              <button
+                onClick={() => {
+                  if (!objecaoText.trim()) return;
+                  const actorName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Consultor';
+                  addNote(lead.id, `Objeção registrada: ${objecaoText}`, 'consultant', actorName);
+                  setObjecaoSaved(true);
+                  setTimeout(() => setObjecaoText(''), 1500);
+                }}
+                disabled={!objecaoText.trim()}
+                className="px-4 py-2.5 bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold rounded-xl transition-all disabled:opacity-40 whitespace-nowrap"
+              >
+                {objecaoSaved ? '✓ Salvo' : 'Registrar'}
+              </button>
+            </div>
+            <p className="text-[10px] text-slate-400 mt-1.5">Será registrado na linha do tempo e usado futuramente para gerar estratégias de quebra de objeção via IA.</p>
+          </div>
+        </div>
+      )}
+
+      {/* ── Card de Visita Agendada (aparece só quando Agendado + tem data) ── */}
+      {lead.status === 'Agendado' && lead.visitDate && (
+        <div className="card-glass p-5 border-l-4 border-l-emerald-500 flex flex-col sm:flex-row sm:items-center gap-5">
+          <div className="w-12 h-12 bg-emerald-50 dark:bg-emerald-900/20 rounded-2xl flex items-center justify-center shrink-0">
+            <Calendar size={22} className="text-emerald-600" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-[10px] font-black text-emerald-600 uppercase tracking-widest mb-1">Visita Confirmada</p>
+            <p className="text-lg font-display font-bold dark:text-white">
+              {new Date(lead.visitDate + 'T12:00:00').toLocaleDateString('pt-BR', {
+                weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
+              })}
+              {lead.visitTime && <span className="text-red-600"> às {lead.visitTime.slice(0,5)}</span>}
+            </p>
+            {lead.visitors && (
+              <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5 flex items-center gap-1.5">
+                <span>Visitantes:</span>
+                <span className="font-semibold dark:text-slate-300">{lead.visitors}</span>
+              </p>
+            )}
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            <button
+              onClick={() => setShowAgendar(true)}
+              className="px-4 py-2 text-xs font-bold text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-xl transition-all"
+            >
+              Remarcar
+            </button>
+            <button
+              onClick={() => setShowVisitaModal(true)}
+              className="px-4 py-2 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl shadow-sm shadow-emerald-600/20 transition-all"
+            >
+              ✓ Visita Realizada
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* ── LINHA 2: Pipeline ── */}
       <div className="card-glass p-6">
         <h3 className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-6">Etapa no Funil</h3>
@@ -298,9 +435,16 @@ export const LeadDetailView: React.FC = () => {
                   </div>
                   <div className="card-glass p-4">
                     <div className="flex items-center justify-between mb-1.5">
-                      <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">
-                        {event.type === 'ai' ? 'Agente IA' : event.type === 'note' ? 'Nota Interna' : event.type === 'system' ? 'Sistema' : 'Consultor'}
-                      </span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+                          {event.type === 'ai' ? 'Agente IA' : event.type === 'note' ? 'Nota Interna' : event.type === 'system' ? 'Sistema' : 'Consultor'}
+                        </span>
+                        {event.actor && (
+                          <span className="text-[10px] font-semibold text-slate-500 dark:text-slate-500 bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded capitalize">
+                            {event.actor}
+                          </span>
+                        )}
+                      </div>
                       <span className="text-[10px] text-slate-300">
                         {format(new Date(event.createdAt), "dd 'de' MMM, HH:mm", { locale: ptBR })}
                       </span>
@@ -371,7 +515,12 @@ export const LeadDetailView: React.FC = () => {
                   className="py-3 px-4 bg-slate-100 dark:bg-slate-900 text-slate-600 dark:text-slate-400 font-bold rounded-xl hover:bg-slate-200 transition-all">
                   Cancelar
                 </button>
-                <button onClick={() => { updateLeadStatus(lead.id, 'Perdido'); setShowDeleteModal(false); setCurrentView(ViewState.LEADS); }}
+                <button onClick={() => {
+                  const actorName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Consultor';
+                  updateLeadStatus(lead.id, 'Perdido', actorName);
+                  setShowDeleteModal(false);
+                  setCurrentView(ViewState.LEADS);
+                }}
                   className="py-3 px-4 bg-red-600 text-white font-bold rounded-xl hover:bg-red-700 transition-all">
                   Confirmar
                 </button>
@@ -381,6 +530,69 @@ export const LeadDetailView: React.FC = () => {
         )}
       </AnimatePresence>
 
+
+      {/* Modal — Visita Realizada */}
+      {showVisitaModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" onClick={() => setShowVisitaModal(false)} />
+          <div className="bg-white dark:bg-slate-950 rounded-3xl shadow-2xl relative z-10 w-full max-w-sm border border-slate-100 dark:border-slate-900 overflow-hidden">
+            {/* Header verde */}
+            <div className="bg-emerald-600 px-6 py-5 flex items-center gap-3">
+              <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
+                <CheckCircle2 size={22} className="text-white" />
+              </div>
+              <div>
+                <p className="text-white font-bold text-base">Visita Realizada!</p>
+                <p className="text-emerald-100 text-xs mt-0.5">{lead.responsibleName} · {lead.childName}</p>
+              </div>
+            </div>
+            {/* Body */}
+            <div className="px-6 py-5 space-y-3">
+              <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">Qual é o próximo passo?</p>
+              <button
+                onClick={() => {
+                  const actorName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Consultor';
+                  updateLeadStatus(lead.id, 'Visitou', actorName);
+                  addNote(lead.id, 'Visita realizada. Lead em negociação para matrícula.', 'system', actorName);
+                  setShowVisitaModal(false);
+                }}
+                className="w-full flex items-center gap-3 p-4 bg-slate-50 dark:bg-slate-900 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 border border-slate-100 dark:border-slate-800 hover:border-emerald-200 rounded-2xl transition-all text-left group"
+              >
+                <div className="w-9 h-9 bg-emerald-100 dark:bg-emerald-900/30 rounded-xl flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                  <CheckCircle2 size={18} className="text-emerald-600" />
+                </div>
+                <div>
+                  <p className="text-sm font-bold text-slate-800 dark:text-slate-100">Avançar para Matrícula</p>
+                  <p className="text-xs text-slate-400 mt-0.5">Lead demonstrou interesse em matricular</p>
+                </div>
+              </button>
+              <button
+                onClick={() => {
+                  const actorName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Consultor';
+                  updateLeadStatus(lead.id, 'Follow-up Recuperação', actorName);
+                  addNote(lead.id, 'Visita realizada. Lead precisa de acompanhamento para decisão.', 'system', actorName);
+                  setShowVisitaModal(false);
+                }}
+                className="w-full flex items-center gap-3 p-4 bg-slate-50 dark:bg-slate-900 hover:bg-amber-50 dark:hover:bg-amber-900/20 border border-slate-100 dark:border-slate-800 hover:border-amber-200 rounded-2xl transition-all text-left group"
+              >
+                <div className="w-9 h-9 bg-amber-100 dark:bg-amber-900/30 rounded-xl flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                  <Clock size={18} className="text-amber-600" />
+                </div>
+                <div>
+                  <p className="text-sm font-bold text-slate-800 dark:text-slate-100">Follow-up de Recuperação</p>
+                  <p className="text-xs text-slate-400 mt-0.5">Lead precisa de mais tempo para decidir</p>
+                </div>
+              </button>
+            </div>
+            <div className="px-6 pb-5">
+              <button onClick={() => setShowVisitaModal(false)}
+                className="w-full py-2.5 text-sm text-slate-400 hover:text-slate-600 font-medium transition-colors">
+                Cancelar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {showAgendar && (
         <AgendarModal
