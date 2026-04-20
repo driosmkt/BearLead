@@ -9,7 +9,8 @@ import {
   FileText, User, Zap
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { AgendarModal } from '../components/AgendarModal';
+import { AgendarModal }  from '../components/AgendarModal';
+import { ObjecaoIA }    from '../components/ObjecaoIA';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
@@ -270,6 +271,7 @@ export const LeadDetailView: React.FC = () => {
 
       {/* ── Banner Follow-up Recuperação ── */}
       {lead.status === 'Follow-up Recuperação' && (
+        <>
         <div className="card-glass border-l-4 border-l-amber-500 p-5">
           <div className="flex flex-col sm:flex-row sm:items-start gap-4">
             <div className="flex items-center gap-3 flex-1">
@@ -316,6 +318,12 @@ export const LeadDetailView: React.FC = () => {
             <p className="text-[10px] text-slate-400 mt-1.5">Será registrado na linha do tempo e usado futuramente para gerar estratégias de quebra de objeção via IA.</p>
           </div>
         </div>
+
+        {/* IA — Quebra de Objeção */}
+        <div className="mt-4">
+          <ObjecaoIA lead={lead} />
+        </div>
+        </>
       )}
 
       {/* ── Card de Visita Agendada (aparece só quando Agendado + tem data) ── */}

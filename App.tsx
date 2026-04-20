@@ -37,6 +37,7 @@ const LoadingScreen: React.FC = () => (
 // ─── App autenticado ──────────────────────────────────────────────────────────
 const AppContent: React.FC = () => {
   const { currentView, loading } = useLeadsContext();
+  const { isAdmin } = useAuth();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   if (loading) return <LoadingScreen />;
@@ -47,11 +48,11 @@ const AppContent: React.FC = () => {
       case ViewState.LEADS:        return <LeadsView />;
       case ViewState.LEAD_DETAIL:  return <LeadDetailView />;
       case ViewState.CAMPAIGNS:    return <CampaignsView />;
-      case ViewState.SUBSCRIPTION: return <SubscriptionView />;
-      case ViewState.N8N_CONFIG:   return <N8nConfigView />;
+      case ViewState.SUBSCRIPTION: return isAdmin ? <SubscriptionView /> : <DashboardView />;
+      case ViewState.N8N_CONFIG:   return isAdmin ? <N8nConfigView /> : <DashboardView />;
       case ViewState.SETTINGS:     return <SettingsView />;
       case ViewState.REPORTS:      return <ReportsView />;
-      case ViewState.TEAM:         return <TeamView />;
+      case ViewState.TEAM:         return isAdmin ? <TeamView /> : <DashboardView />;
       default:                     return <DashboardView />;
     }
   };

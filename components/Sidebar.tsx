@@ -8,7 +8,7 @@ interface SidebarProps { isOpen: boolean; onClose: () => void; }
 
 export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
   const { currentView, setCurrentView } = useLeadsContext();
-  const { user, signOut } = useAuth();
+  const { user, signOut, isAdmin } = useAuth();
   const [isDarkMode, setIsDarkMode] = React.useState(
     document.documentElement.classList.contains('dark')
   );
@@ -100,13 +100,20 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
               <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3 px-4">Navegação</p>
               <div className="space-y-1">{menuItems.map(item => <NavItem key={item.id} item={item} />)}</div>
             </div>
+            {isAdmin && (
             <div>
               <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3 px-4">Integrações</p>
               <div className="space-y-1">{integrationItems.map(item => <NavItem key={item.id} item={item} />)}</div>
             </div>
+            )}
             <div>
               <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3 px-4">Conta</p>
-              <div className="space-y-1">{bottomItems.map(item => <NavItem key={item.id} item={item} />)}</div>
+              <div className="space-y-1">
+                {bottomItems
+                  .filter(item => item.id !== 'TEAM' || isAdmin)
+                  .map(item => <NavItem key={item.id} item={item} />)
+                }
+              </div>
             </div>
           </div>
 
