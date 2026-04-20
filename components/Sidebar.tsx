@@ -23,7 +23,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
     { id: ViewState.DASHBOARD,    label: 'Dashboard',        icon: LayoutDashboard },
     { id: ViewState.LEADS,        label: 'Central de Leads', icon: Users },
     { id: ViewState.CAMPAIGNS,    label: 'Campanhas',        icon: Megaphone },
-    { id: ViewState.REPORTS,      label: 'Relatórios',       icon: FileBarChart, disabled: true },
+    { id: ViewState.REPORTS,      label: 'Relatórios',       icon: FileBarChart },
     { id: ViewState.SUBSCRIPTION, label: 'Assinatura',       icon: CreditCard },
   ];
 

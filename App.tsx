@@ -14,6 +14,7 @@ import { CampaignsView }    from './pages/CampaignsView';
 import { SubscriptionView } from './pages/SubscriptionView';
 import { N8nConfigView }    from './pages/N8nConfigView';
 import { SettingsView }     from './pages/SettingsView';
+import { ReportsView }      from './pages/ReportsView';
 import { TeamView }         from './pages/TeamView';
 
 // ─── Loading ──────────────────────────────────────────────────────────────────
@@ -49,6 +50,7 @@ const AppContent: React.FC = () => {
       case ViewState.SUBSCRIPTION: return <SubscriptionView />;
       case ViewState.N8N_CONFIG:   return <N8nConfigView />;
       case ViewState.SETTINGS:     return <SettingsView />;
+      case ViewState.REPORTS:      return <ReportsView />;
       case ViewState.TEAM:         return <TeamView />;
       default:                     return <DashboardView />;
     }
