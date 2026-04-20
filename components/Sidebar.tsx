@@ -31,6 +31,14 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
     { id: ViewState.N8N_CONFIG, label: 'Configurar n8n', icon: Workflow },
   ];
 
+  const bottomItems = [
+    { id: ViewState.TEAM,     label: 'Equipe',         icon: Users },
+    { id: ViewState.SETTINGS, label: 'Configurações',  icon: Workflow },
+  ];
+
+  const _ignore = [
+  ];
+
   const NavItem = ({ item }: { item: any }) => {
     const active = currentView === item.id;
     const Icon = item.icon;
@@ -95,6 +103,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             <div>
               <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3 px-4">Integrações</p>
               <div className="space-y-1">{integrationItems.map(item => <NavItem key={item.id} item={item} />)}</div>
+            </div>
+            <div>
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3 px-4">Conta</p>
+              <div className="space-y-1">{bottomItems.map(item => <NavItem key={item.id} item={item} />)}</div>
             </div>
           </div>
 

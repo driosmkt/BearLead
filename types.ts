@@ -5,7 +5,9 @@ export enum ViewState {
   CAMPAIGNS = 'CAMPAIGNS',
   SUBSCRIPTION = 'SUBSCRIPTION',
   REPORTS = 'REPORTS',
-  N8N_CONFIG = 'N8N_CONFIG'
+  N8N_CONFIG = 'N8N_CONFIG',
+  SETTINGS   = 'SETTINGS',
+  TEAM       = 'TEAM'
 }
 
 export type LeadStatus = 

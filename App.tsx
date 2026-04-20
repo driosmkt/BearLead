@@ -13,6 +13,8 @@ import { LeadDetailView }   from './pages/LeadDetailView';
 import { CampaignsView }    from './pages/CampaignsView';
 import { SubscriptionView } from './pages/SubscriptionView';
 import { N8nConfigView }    from './pages/N8nConfigView';
+import { SettingsView }     from './pages/SettingsView';
+import { TeamView }         from './pages/TeamView';
 
 // ─── Loading ──────────────────────────────────────────────────────────────────
 const LoadingScreen: React.FC = () => (
@@ -46,6 +48,8 @@ const AppContent: React.FC = () => {
       case ViewState.CAMPAIGNS:    return <CampaignsView />;
       case ViewState.SUBSCRIPTION: return <SubscriptionView />;
       case ViewState.N8N_CONFIG:   return <N8nConfigView />;
+      case ViewState.SETTINGS:     return <SettingsView />;
+      case ViewState.TEAM:         return <TeamView />;
       default:                     return <DashboardView />;
     }
   };
